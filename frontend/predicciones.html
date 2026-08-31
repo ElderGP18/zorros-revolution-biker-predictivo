@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Predicciones IA · Zorros Revolution Biker</title>
+<link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon">🦊</span>
+      <div><strong>Zorros Revolution</strong><small>AI Predictive Engine</small></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard.html" data-nav="dashboard">📊 Dashboard</a>
+      <a href="/ventas.html" data-nav="ventas">🧾 Ventas</a>
+      <a href="/productos.html" data-nav="productos">🏍️ Productos</a>
+      <a href="/predicciones.html" data-nav="predicciones" data-roles="admin">📡 Predicciones</a>
+    </nav>
+    <div class="sidebar-user">
+      <div><strong id="nombre-usuario">—</strong><small id="rol-usuario">—</small></div>
+      <button id="btn-logout" class="btn-icon" title="Cerrar sesión">⎋</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div>
+        <h1>Módulo de Predicción de Ventas (IA)</h1>
+        <p>Motor de inferencia analizando patrones de compra y estacionalidad de Guatemala</p>
+      </div>
+      <div class="topbar-actions">
+        <select id="horizonte">
+          <option value="7">7 días</option>
+          <option value="30" selected>30 días</option>
+          <option value="90">3 meses</option>
+          <option value="180">6 meses</option>
+        </select>
+        <button class="btn btn-primary" id="btn-recalibrar">⟳ Recalibrar Modelo</button>
+      </div>
+    </header>
+
+    <section class="kpi-grid kpi-grid-3">
+      <div class="kpi-card">
+        <span class="kpi-label">Volumen proyectado (horizonte)</span>
+        <span class="kpi-value" id="kpi-volumen-proyectado">Q 0.00</span>
+      </div>
+      <div class="kpi-card kpi-accent">
+        <span class="kpi-label">Último entrenamiento</span>
+        <span class="kpi-value" id="kpi-ultimo-modelo">Sin entrenar</span>
+        <span class="kpi-delta" id="kpi-metricas">—</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Próximo evento estacional</span>
+        <span class="kpi-value" id="kpi-proximo-evento">—</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header"><h2>Histórico vs. pronóstico</h2></div>
+      <canvas id="chart-pronostico" height="100"></canvas>
+    </section>
+
+    <section class="panel-grid">
+      <div class="panel">
+        <div class="panel-header"><h2>Señales por producto</h2></div>
+        <div id="lista-senales" class="reco-list"><p class="empty-state">Cargando…</p></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><h2>Recomendaciones de reabastecimiento</h2></div>
+        <div id="lista-recos" class="reco-list"><p class="empty-state">Cargando…</p></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="/js/api.js"></script>
+<script src="/js/predicciones.js"></script>
+</body>
+</html>

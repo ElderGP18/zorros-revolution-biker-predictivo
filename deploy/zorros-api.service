@@ -1,0 +1,16 @@
+[Unit]
+Description=Zorros Revolution Biker - API predictiva (FastAPI)
+After=network.target
+
+[Service]
+User=deploy
+Group=deploy
+WorkingDirectory=/home/deploy/PRO_SE/backend
+Environment="PATH=/home/deploy/PRO_SE/backend/venv/bin"
+EnvironmentFile=/home/deploy/PRO_SE/backend/.env
+ExecStart=/home/deploy/PRO_SE/backend/venv/bin/gunicorn app.main:app -c gunicorn_conf.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
