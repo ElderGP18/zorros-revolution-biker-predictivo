@@ -1,4 +1,12 @@
-# Despliegue en Hostinger (VPS)
+# Despliegue manual en VPS (alternativa)
+
+> **La vía recomendada es [`DEPLOY-DOCKER.md`](DEPLOY-DOCKER.md)**, que cumple el
+> RNF-12 de la tesis y contempla que el VPS está compartido con otros proyectos.
+> Esta guía queda como alternativa cuando no se quiera usar contenedores.
+>
+> Ojo con dos supuestos de este documento que ya no aplican al servidor actual:
+> el puerto **8000 está ocupado** por otro proyecto (usar 8020) y la ruta
+> `/home/deploy/PRO_SE` hay que ajustarla a la carpeta real donde se clone.
 
 Guía paso a paso para llevar el sistema (backend FastAPI + frontend estático + MySQL) a un VPS de Hostinger.
 

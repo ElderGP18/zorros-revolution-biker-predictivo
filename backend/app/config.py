@@ -16,6 +16,12 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 12
 
+    # Carpeta donde se persisten los artefactos del modelo (.joblib). Debe apuntar a
+    # un volumen fuera de la imagen: si queda dentro del contenedor, cada redespliegue
+    # borra el modelo entrenado y la app cae al fallback heurístico sin avisar.
+    # Vacío = usar la ruta por defecto junto al código (comportamiento en local).
+    ARTIFACTS_DIR: str = ""
+
     # Días promedio de envío desde China usados como default cuando un producto
     # no tiene su propio lead_time_dias_china configurado.
     LEAD_TIME_DEFAULT_DIAS: int = 60
