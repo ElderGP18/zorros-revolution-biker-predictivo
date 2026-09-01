@@ -79,8 +79,10 @@ function initNav(paginaActual) {
   const rol = getRol();
 
   document.querySelectorAll("[data-nav]").forEach((el) => {
-    if (el.dataset.nav === paginaActual) el.classList.add("active");
-    else el.classList.remove("active");
+    const activo = el.dataset.nav === paginaActual;
+    el.classList.toggle("active", activo);
+    if (activo) el.setAttribute("aria-current", "page");
+    else el.removeAttribute("aria-current");
   });
 
   document.querySelectorAll("[data-roles]").forEach((el) => {
@@ -88,8 +90,17 @@ function initNav(paginaActual) {
     if (!roles.includes(rol)) el.style.display = "none";
   });
 
+  document.querySelectorAll(".topbar-actions").forEach((contenedor) => {
+    const visibles = [...contenedor.children].filter((el) => el.style.display !== "none");
+    contenedor.classList.toggle("is-single-action", visibles.length === 1);
+  });
+
   const nombreEl = document.getElementById("nombre-usuario");
-  if (nombreEl) nombreEl.textContent = getNombre() || "";
+  const nombre = getNombre() || "Usuario";
+  if (nombreEl) nombreEl.textContent = nombre;
+
+  const inicialEl = document.getElementById("user-initial");
+  if (inicialEl) inicialEl.textContent = nombre.trim().charAt(0).toUpperCase() || "Z";
 
   const rolEl = document.getElementById("rol-usuario");
   if (rolEl) rolEl.textContent = rol === "admin" ? "Administrador" : "Cajero";

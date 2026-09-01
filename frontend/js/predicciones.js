@@ -26,6 +26,8 @@ function proximoEvento() {
 
 async function cargarPronostico() {
   const horizonte = document.getElementById("horizonte").value;
+  const frame = document.getElementById("chart-pronostico-frame");
+  frame.classList.remove("is-ready");
   try {
     const puntos = await api(`/predictions/forecast?horizonte=${horizonte}`);
     const labels = puntos.map((p) => p.fecha);
@@ -41,21 +43,26 @@ async function cargarPronostico() {
       data: {
         labels,
         datasets: [
-          { label: "Histórico (Real)", data: real, borderColor: "#e11d2e", backgroundColor: "rgba(225,29,46,0.12)", spanGaps: true, tension: 0.25 },
-          { label: "Predicción IA", data: pronostico, borderColor: "#f2b705", borderDash: [6, 4], spanGaps: true, tension: 0.25 },
+          { label: "Histórico real", data: real, borderColor: "#D7D0C0", backgroundColor: "rgba(215,208,192,0.05)", spanGaps: true, tension: 0.34, borderWidth: 2, pointRadius: 0, pointHoverRadius: 5 },
+          { label: "Predicción IA", data: pronostico, borderColor: "#FF5500", backgroundColor: "rgba(255,85,0,0.12)", spanGaps: true, tension: 0.34, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, fill: true },
         ],
       },
       options: {
         responsive: true,
-        plugins: { legend: { labels: { color: "#c9ced8" } } },
+        maintainAspectRatio: false,
+        interaction: { intersect: false, mode: "index" },
+        animation: { duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700 },
+        plugins: { legend: { position: "bottom", align: "start", labels: { color: "#D7D0C0", usePointStyle: true, boxWidth: 7, padding: 20 } } },
         scales: {
-          x: { ticks: { color: "#8b93a7", maxTicksLimit: 12 }, grid: { color: "rgba(255,255,255,0.05)" } },
-          y: { ticks: { color: "#8b93a7" }, grid: { color: "rgba(255,255,255,0.05)" } },
+          x: { ticks: { color: "#979183", maxTicksLimit: 10, maxRotation: 0 }, grid: { display: false }, border: { display: false } },
+          y: { ticks: { color: "#979183", callback: (value) => `Q ${Number(value).toLocaleString("es-GT")}` }, grid: { color: "rgba(245,240,227,0.06)" }, border: { display: false } },
         },
       },
     });
+    frame.classList.add("is-ready");
   } catch (err) {
     console.error(err);
+    frame.innerHTML = `<p class="empty-state">${escapeHtml(err.message || "No se pudo cargar el pronóstico.")}</p>`;
   }
 }
 
@@ -82,6 +89,8 @@ async function cargarSenales() {
       .join("");
   } catch (err) {
     contenedor.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`;
+  } finally {
+    contenedor.setAttribute("aria-busy", "false");
   }
 }
 
@@ -105,6 +114,8 @@ async function cargarRecomendaciones() {
       .join("");
   } catch (err) {
     contenedor.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`;
+  } finally {
+    contenedor.setAttribute("aria-busy", "false");
   }
 }
 
@@ -115,8 +126,7 @@ function mostrarProximoEvento() {
 
 document.getElementById("btn-recalibrar").addEventListener("click", async () => {
   const boton = document.getElementById("btn-recalibrar");
-  boton.disabled = true;
-  boton.textContent = "Entrenando…";
+  setButtonLoading(boton, true, "Entrenando modelo");
   try {
     const resultado = await api("/predictions/retrain", { method: "POST" });
     document.getElementById("kpi-ultimo-modelo").textContent = resultado.algoritmo;
@@ -124,11 +134,11 @@ document.getElementById("btn-recalibrar").addEventListener("click", async () => 
       `MASE: ${resultado.mase} · WAPE: ${resultado.wape}% · Mejora vs. base: ${resultado.mejora_vs_baseline_pct}%`;
     await cargarPronostico();
     await cargarRecomendaciones();
+    showToast("Modelo recalibrado correctamente.");
   } catch (err) {
-    alert("No se pudo recalibrar: " + err.message);
+    showToast(`No se pudo recalibrar: ${err.message}`, "error");
   } finally {
-    boton.disabled = false;
-    boton.textContent = "⟳ Recalibrar Modelo";
+    setButtonLoading(boton, false);
   }
 });
 

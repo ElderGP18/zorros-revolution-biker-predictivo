@@ -15,9 +15,9 @@ function filaItem() {
     .join("");
   return `
     <div class="item-venta">
-      <select class="item-producto">${opciones}</select>
-      <input type="number" class="item-cantidad" min="1" value="1" />
-      <button type="button" class="btn-icon quitar-item">✕</button>
+      <select class="item-producto" aria-label="Producto">${opciones}</select>
+      <input type="number" class="item-cantidad" min="1" value="1" aria-label="Cantidad" />
+      <button type="button" class="btn-icon quitar-item" aria-label="Quitar producto">${iconSvg("trash")}</button>
     </div>`;
 }
 
@@ -28,9 +28,8 @@ function agregarItem() {
 document.getElementById("btn-agregar-item").addEventListener("click", agregarItem);
 
 document.getElementById("items-venta").addEventListener("click", (e) => {
-  if (e.target.classList.contains("quitar-item")) {
-    e.target.closest(".item-venta").remove();
-  }
+  const boton = e.target.closest(".quitar-item");
+  if (boton) boton.closest(".item-venta").remove();
 });
 
 document.getElementById("btn-nueva-venta").addEventListener("click", async () => {
@@ -47,6 +46,7 @@ document.getElementById("btn-cerrar-modal").addEventListener("click", () => {
 document.getElementById("form-venta").addEventListener("submit", async (e) => {
   e.preventDefault();
   const errorEl = document.getElementById("venta-error");
+  const boton = document.getElementById("btn-registrar-venta");
   errorEl.hidden = true;
 
   const items = Array.from(document.querySelectorAll(".item-venta")).map((fila) => ({
@@ -60,6 +60,7 @@ document.getElementById("form-venta").addEventListener("submit", async (e) => {
     return;
   }
 
+  setButtonLoading(boton, true, "Registrando venta");
   try {
     await api("/sales", {
       method: "POST",
@@ -72,9 +73,12 @@ document.getElementById("form-venta").addEventListener("submit", async (e) => {
     document.getElementById("modal-venta").hidden = true;
     await cargarVentas();
     await cargarProductos();
+    showToast("Venta registrada correctamente.");
   } catch (err) {
     errorEl.textContent = err.message;
     errorEl.hidden = false;
+  } finally {
+    setButtonLoading(boton, false);
   }
 });
 
@@ -90,17 +94,19 @@ async function cargarVentas() {
       .map(
         (v) => `
         <tr>
-          <td>#${escapeHtml(v.id)}</td>
-          <td>${escapeHtml(new Date(v.fecha_hora).toLocaleString("es-GT"))}</td>
-          <td>${escapeHtml(v.cajero_nombre)}</td>
-          <td>${v.items.map((i) => `${escapeHtml(i.cantidad)}× ${escapeHtml(i.producto_nombre)}`).join(", ")}</td>
-          <td>${formatoQ(v.total)}</td>
-          <td>${escapeHtml(v.metodo_pago)}</td>
+          <td data-label="Número">#${escapeHtml(v.id)}</td>
+          <td data-label="Fecha">${escapeHtml(new Date(v.fecha_hora).toLocaleString("es-GT"))}</td>
+          <td data-label="Cajero">${escapeHtml(v.cajero_nombre)}</td>
+          <td data-label="Productos">${v.items.map((i) => `${escapeHtml(i.cantidad)}× ${escapeHtml(i.producto_nombre)}`).join(", ")}</td>
+          <td data-label="Total">${formatoQ(v.total)}</td>
+          <td data-label="Pago">${escapeHtml(v.metodo_pago)}</td>
         </tr>`
       )
       .join("");
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="6" class="empty-state">${escapeHtml(err.message)}</td></tr>`;
+  } finally {
+    tbody.setAttribute("aria-busy", "false");
   }
 }
 

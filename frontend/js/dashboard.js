@@ -20,6 +20,7 @@ async function cargarResumen() {
       data.confianza_modelo != null ? `Confianza del modelo: ${data.confianza_modelo}%` : "Modelo aún no entrenado";
   } catch (err) {
     console.error(err);
+    showToast("No se pudo cargar el resumen del dashboard.", "error");
   }
 }
 
@@ -35,21 +36,26 @@ async function cargarTendencia() {
       data: {
         labels,
         datasets: [
-          { label: "Real", data: real, borderColor: "#e11d2e", backgroundColor: "rgba(225,29,46,0.15)", spanGaps: true, tension: 0.3 },
-          { label: "Proyectado", data: proyectado, borderColor: "#8b93a7", borderDash: [6, 4], spanGaps: true, tension: 0.3 },
+          { label: "Real", data: real, borderColor: "#FF5500", backgroundColor: "rgba(255,85,0,0.12)", spanGaps: true, tension: 0.34, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, fill: true },
+          { label: "Proyectado", data: proyectado, borderColor: "#D7D0C0", borderDash: [7, 5], spanGaps: true, tension: 0.34, borderWidth: 2, pointRadius: 0, pointHoverRadius: 5 },
         ],
       },
       options: {
         responsive: true,
-        plugins: { legend: { labels: { color: "#c9ced8" } } },
+        maintainAspectRatio: false,
+        interaction: { intersect: false, mode: "index" },
+        animation: { duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700 },
+        plugins: { legend: { position: "bottom", align: "start", labels: { color: "#D7D0C0", usePointStyle: true, boxWidth: 7, padding: 20 } } },
         scales: {
-          x: { ticks: { color: "#8b93a7" }, grid: { color: "rgba(255,255,255,0.05)" } },
-          y: { ticks: { color: "#8b93a7" }, grid: { color: "rgba(255,255,255,0.05)" } },
+          x: { ticks: { color: "#979183", maxRotation: 0, maxTicksLimit: 7 }, grid: { display: false }, border: { display: false } },
+          y: { ticks: { color: "#979183", callback: (value) => `Q ${Number(value).toLocaleString("es-GT")}` }, grid: { color: "rgba(245,240,227,0.06)" }, border: { display: false } },
         },
       },
     });
+    document.getElementById("chart-tendencia-frame").classList.add("is-ready");
   } catch (err) {
     console.error(err);
+    document.getElementById("chart-tendencia-frame").innerHTML = `<p class="empty-state">${escapeHtml(err.message || "No se pudo cargar la gráfica.")}</p>`;
   }
 }
 
@@ -57,6 +63,7 @@ async function cargarRecomendaciones() {
   const contenedor = document.getElementById("lista-recomendaciones");
   if (getRol() !== "admin") {
     contenedor.innerHTML = '<p class="empty-state">Disponible solo para administradores.</p>';
+    contenedor.setAttribute("aria-busy", "false");
     return;
   }
   try {
@@ -78,6 +85,8 @@ async function cargarRecomendaciones() {
       .join("");
   } catch (err) {
     contenedor.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`;
+  } finally {
+    contenedor.setAttribute("aria-busy", "false");
   }
 }
 
