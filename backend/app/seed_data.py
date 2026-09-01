@@ -7,6 +7,8 @@ Uso:
     python -m app.seed_data
 """
 import random
+import secrets
+import string
 from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
@@ -46,26 +48,46 @@ CATALOGO = [
 ]
 
 USUARIOS_DEMO = [
-    {"nombre": "Administrador Principal", "email": "admin@zorrosrevolution.com", "password": "Admin123!", "rol": "admin"},
-    {"nombre": "Cajero de Turno", "email": "cajero@zorrosrevolution.com", "password": "Cajero123!", "rol": "cajero"},
+    {"nombre": "Administrador Principal", "email": "admin@zorrosrevolution.com", "rol": "admin"},
+    {"nombre": "Cajero de Turno", "email": "cajero@zorrosrevolution.com", "rol": "cajero"},
 ]
 
 MESES_HISTORIAL = 24
 
 
-def _crear_usuarios(db: Session):
+def _password_aleatoria(longitud: int = 16) -> str:
+    """Contraseña fuerte que cumple la política, generada al azar.
+
+    Antes las contraseñas estaban escritas en este archivo y publicadas en el
+    README, de modo que cualquiera que viera el repositorio podía entrar a una
+    instancia desplegada. Ahora se generan una sola vez, se imprimen y solo
+    queda su hash en la base: no viven ni en el código ni en el .env.
+    """
+    alfabeto = string.ascii_letters + string.digits
+    while True:
+        clave = "".join(secrets.choice(alfabeto) for _ in range(longitud))
+        if any(c.isalpha() for c in clave) and any(c.isdigit() for c in clave):
+            return clave
+
+
+def _crear_usuarios(db: Session) -> dict:
+    """Crea los usuarios que falten y devuelve las contraseñas generadas."""
+    generadas = {}
     for u in USUARIOS_DEMO:
         if db.query(models.User).filter(models.User.email == u["email"]).first():
             continue
+        clave = _password_aleatoria()
+        generadas[u["email"]] = clave
         db.add(
             models.User(
                 nombre=u["nombre"],
                 email=u["email"],
-                password_hash=hash_password(u["password"]),
+                password_hash=hash_password(clave),
                 rol=models.RolUsuario(u["rol"]),
             )
         )
     db.commit()
+    return generadas
 
 
 def _crear_catalogo(db: Session):
@@ -180,16 +202,26 @@ def seed():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        _crear_usuarios(db)
+        generadas = _crear_usuarios(db)
         productos = _crear_catalogo(db)
         admin = db.query(models.User).filter(models.User.rol == models.RolUsuario.admin).first()
         cajero = db.query(models.User).filter(models.User.rol == models.RolUsuario.cajero).first()
         _generar_ventas(db, productos, admin.id, cajero.id)
 
         print("\nDatos de demostración creados correctamente.")
-        print("Usuarios de prueba:")
-        for u in USUARIOS_DEMO:
-            print(f"  - {u['rol']}: {u['email']} / {u['password']}")
+        if generadas:
+            print("\n" + "=" * 68)
+            print("CONTRASEÑAS GENERADAS — SE MUESTRAN UNA SOLA VEZ")
+            print("=" * 68)
+            for email, clave in generadas.items():
+                print(f"  {email}\n    {clave}")
+            print("=" * 68)
+            print("Anótalas ahora: solo queda su hash en la base de datos.")
+            print("Cámbialas desde Administración → Usuarios al primer ingreso.")
+            print("=" * 68)
+        else:
+            print("Los usuarios ya existían: sus contraseñas no se modificaron.")
+            print("Si perdiste el acceso, usa:  python -m app.manage_users")
     finally:
         db.close()
 

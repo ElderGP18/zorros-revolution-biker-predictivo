@@ -56,8 +56,22 @@ uvicorn app.main:app --reload
 
 Abre `http://127.0.0.1:8000` en el navegador. Inicia sesión con:
 
-- **Administrador**: `admin@zorrosrevolution.com` / `Admin123!`
-- **Cajero**: `cajero@zorrosrevolution.com` / `Cajero123!`
+Las contraseñas **ya no están escritas en el código**: `seed_data` genera una aleatoria
+por usuario y la imprime **una sola vez** al ejecutarse. Anótala en ese momento; en la base
+solo queda su hash bcrypt.
+
+- **Administrador**: `admin@zorrosrevolution.com`
+- **Cajero**: `cajero@zorrosrevolution.com`
+
+Si pierdes el acceso, la vía de recuperación es la línea de comandos:
+
+```bash
+python -m app.manage_users listar
+python -m app.manage_users password admin@zorrosrevolution.com --generar
+```
+
+Una vez dentro, la gestión de usuarios, roles y contraseñas se hace desde
+**Usuarios** en el menú lateral (solo administradores).
 
 La documentación interactiva de la API está en `http://127.0.0.1:8000/docs`.
 

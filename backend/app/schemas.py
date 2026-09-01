@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 # ---------- Auth ----------
@@ -28,11 +28,82 @@ class UserOut(BaseModel):
         from_attributes = True
 
 
+# Política mínima de contraseñas. Se aplica en todos los puntos donde se
+# establece una: alta de usuario, restablecimiento por un administrador y cambio
+# de la propia. Antes `password: str` aceptaba cualquier cosa, incluso "a".
+PASSWORD_MIN_LONGITUD = 10
+
+
+def validar_password(valor: str) -> str:
+    if len(valor) < PASSWORD_MIN_LONGITUD:
+        raise ValueError(f"La contraseña debe tener al menos {PASSWORD_MIN_LONGITUD} caracteres")
+    if not any(c.isalpha() for c in valor):
+        raise ValueError("La contraseña debe incluir al menos una letra")
+    if not any(c.isdigit() for c in valor):
+        raise ValueError("La contraseña debe incluir al menos un número")
+    return valor
+
+
+ROLES_VALIDOS = ("admin", "cajero")
+
+
+def validar_rol(valor: str) -> str:
+    if valor not in ROLES_VALIDOS:
+        raise ValueError(f"Rol inválido. Debe ser uno de: {', '.join(ROLES_VALIDOS)}")
+    return valor
+
+
 class UserCreate(BaseModel):
-    nombre: str
+    nombre: str = Field(min_length=2, max_length=120)
     email: EmailStr
     password: str
     rol: str = "cajero"
+
+    @field_validator("password")
+    @classmethod
+    def _password(cls, v: str) -> str:
+        return validar_password(v)
+
+    @field_validator("rol")
+    @classmethod
+    def _rol(cls, v: str) -> str:
+        return validar_rol(v)
+
+
+class UserRolUpdate(BaseModel):
+    rol: str
+
+    @field_validator("rol")
+    @classmethod
+    def _rol(cls, v: str) -> str:
+        return validar_rol(v)
+
+
+class UserEstadoUpdate(BaseModel):
+    activo: bool
+
+
+class PasswordReset(BaseModel):
+    """Un administrador establece la contraseña de otro usuario."""
+
+    password_nueva: str
+
+    @field_validator("password_nueva")
+    @classmethod
+    def _password(cls, v: str) -> str:
+        return validar_password(v)
+
+
+class PasswordChange(BaseModel):
+    """Un usuario cambia la suya; debe probar que conoce la actual."""
+
+    password_actual: str
+    password_nueva: str
+
+    @field_validator("password_nueva")
+    @classmethod
+    def _password(cls, v: str) -> str:
+        return validar_password(v)
 
 
 # ---------- Productos ----------

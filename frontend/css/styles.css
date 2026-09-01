@@ -216,6 +216,3 @@ form input:focus, form select:focus { outline: none; border-color: var(--red); }
 .login-brand p { margin: 0; color: var(--text-muted); font-size: 11px; }
 .login-card h2 { margin: 0 0 4px; font-size: 20px; }
 .login-sub { color: var(--text-muted); font-size: 13px; margin: 0 0 10px; }
-.login-demo { margin-top: 22px; border-top: 1px solid var(--border); padding-top: 14px; }
-.login-demo p { font-size: 11px; color: var(--text-muted); margin: 0 0 8px; }
-.login-demo code { display: block; font-size: 11px; color: var(--text); background: rgba(255, 255, 255, 0.04); padding: 6px 10px; border-radius: 6px; margin-bottom: 6px; }

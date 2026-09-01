@@ -80,7 +80,11 @@ docker compose up -d --build
 docker compose exec api python -m app.seed_data   # datos de demostración
 ```
 
-Abre http://localhost:8020 · Admin: `admin@zorrosrevolution.com` / `Admin123!`
+Abre http://localhost:8020 · Admin: `admin@zorrosrevolution.com`
+
+La contraseña la **genera `seed_data` al azar y la imprime una sola vez**: anótala de la
+salida del comando. Si la pierdes, `python -m app.manage_users password <correo> --generar`
+la restablece.
 
 Compose **se niega a levantar** si `SECRET_KEY` o `POSTGRES_PASSWORD` están vacíos.
 Es a propósito, para que la clave por defecto del código no llegue a producción.
@@ -214,10 +218,17 @@ El esquema se crea con `create_all()`, que **no modifica tablas existentes**. Si
 cambian un modelo en `models.py`, la columna nueva no aparece sola en producción.
 Hoy hay que hacerlo a mano; la solución de fondo es incorporar Alembic.
 
-### Trampa 3 — Las contraseñas demo están vivas en un dominio público
+### Trampa 3 — Las cuentas creadas antes de septiembre siguen con la clave vieja
 
-`admin@zorrosrevolution.com` / `Admin123!` funciona hoy en internet. **Cambiarlas o
-borrar esos usuarios antes de enseñarle el sistema a la empresa.**
+Desde ahora `seed_data` genera contraseñas aleatorias, pero **el seed no toca usuarios
+que ya existen**. Cualquier instancia sembrada antes conserva la contraseña original que
+estaba publicada en el repositorio. En esos casos hay que restablecerla:
+
+```bash
+docker compose exec api python -m app.manage_users password admin@zorrosrevolution.com --generar
+```
+
+Después, la gestión normal se hace desde **Usuarios** en la interfaz.
 
 ### Trampa 4 — El fallback heurístico es invisible
 
