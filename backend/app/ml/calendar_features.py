@@ -31,28 +31,33 @@ def es_caravana_del_zorro(d: DateLike) -> bool:
     return d.month == 2 and d.day >= 14
 
 
-def dias_hasta_diciembre(d: DateLike) -> int:
+def _dias_hasta_ventana(d: DateLike, mes_inicio: int, dia_inicio: int, en_curso) -> int:
+    """Días que faltan para que inicie la ventana del evento.
+
+    Devuelve 0 mientras el evento está en curso: de lo contrario el sistema dejaría
+    de anticipar un evento justo durante el evento (el 15 de diciembre faltarían
+    351 días para "el próximo diciembre"), y el refuerzo de reabastecimiento nunca
+    se aplicaría en plena temporada.
+    """
     d = _as_date(d)
-    objetivo = date(d.year, 12, 1)
+    if en_curso(d):
+        return 0
+    objetivo = date(d.year, mes_inicio, dia_inicio)
     if d > objetivo:
-        objetivo = date(d.year + 1, 12, 1)
+        objetivo = date(d.year + 1, mes_inicio, dia_inicio)
     return (objetivo - d).days
+
+
+def dias_hasta_diciembre(d: DateLike) -> int:
+    return _dias_hasta_ventana(d, 12, 1, es_temporada_diciembre)
 
 
 def dias_hasta_bono14(d: DateLike) -> int:
-    d = _as_date(d)
-    objetivo = date(d.year, 7, 1)
-    if d > objetivo:
-        objetivo = date(d.year + 1, 7, 1)
-    return (objetivo - d).days
+    return _dias_hasta_ventana(d, 7, 1, es_semana_bono14)
 
 
 def dias_hasta_caravana_zorro(d: DateLike) -> int:
-    d = _as_date(d)
-    objetivo = date(d.year, 2, 14)
-    if d > objetivo:
-        objetivo = date(d.year + 1, 2, 14)
-    return (objetivo - d).days
+    return _dias_hasta_ventana(d, 2, 14, es_caravana_del_zorro)
 
 
 def proximo_evento(d: DateLike):

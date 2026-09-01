@@ -8,7 +8,10 @@ async function cargarProductos() {
 
 function filaItem() {
   const opciones = productosCache
-    .map((p) => `<option value="${p.id}">${p.nombre} (Q${p.precio.toFixed(2)}) — stock: ${p.stock_actual}</option>`)
+    .map(
+      (p) =>
+        `<option value="${escapeHtml(p.id)}">${escapeHtml(p.nombre)} (Q${p.precio.toFixed(2)}) — stock: ${escapeHtml(p.stock_actual)}</option>`
+    )
     .join("");
   return `
     <div class="item-venta">
@@ -87,17 +90,17 @@ async function cargarVentas() {
       .map(
         (v) => `
         <tr>
-          <td>#${v.id}</td>
-          <td>${new Date(v.fecha_hora).toLocaleString("es-GT")}</td>
-          <td>${v.cajero_nombre}</td>
-          <td>${v.items.map((i) => `${i.cantidad}× ${i.producto_nombre}`).join(", ")}</td>
+          <td>#${escapeHtml(v.id)}</td>
+          <td>${escapeHtml(new Date(v.fecha_hora).toLocaleString("es-GT"))}</td>
+          <td>${escapeHtml(v.cajero_nombre)}</td>
+          <td>${v.items.map((i) => `${escapeHtml(i.cantidad)}× ${escapeHtml(i.producto_nombre)}`).join(", ")}</td>
           <td>${formatoQ(v.total)}</td>
-          <td>${v.metodo_pago}</td>
+          <td>${escapeHtml(v.metodo_pago)}</td>
         </tr>`
       )
       .join("");
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">${escapeHtml(err.message)}</td></tr>`;
   }
 }
 

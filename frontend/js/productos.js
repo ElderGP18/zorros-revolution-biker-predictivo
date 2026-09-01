@@ -16,7 +16,7 @@ async function cargarProductos() {
 
     renderTabla(idsStockBajo);
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">${escapeHtml(err.message)}</td></tr>`;
   }
 }
 
@@ -35,12 +35,12 @@ function renderTabla(idsStockBajo) {
       const critico = idsStockBajo.has(p.id);
       return `
       <tr>
-        <td>${p.nombre}</td>
-        <td>${p.sku}</td>
-        <td>${p.categoria}</td>
+        <td>${escapeHtml(p.nombre)}</td>
+        <td>${escapeHtml(p.sku)}</td>
+        <td>${escapeHtml(p.categoria)}</td>
         <td>${formatoQ(p.precio)}</td>
-        <td class="${critico ? "text-danger" : ""}">${p.stock_actual} und.</td>
-        <td>${p.lead_time_dias_china} días</td>
+        <td class="${critico ? "text-danger" : ""}">${escapeHtml(p.stock_actual)} und.</td>
+        <td>${escapeHtml(p.lead_time_dias_china)} días</td>
         <td>${critico ? '<span class="badge badge-critico">Stock bajo</span>' : '<span class="badge badge-ok">Estable</span>'}</td>
       </tr>`;
     })
@@ -58,7 +58,9 @@ document.querySelectorAll(".filtro-btn").forEach((btn) => {
 
 document.getElementById("btn-recibir-stock").addEventListener("click", () => {
   const select = document.getElementById("stock-producto");
-  select.innerHTML = productosCache.map((p) => `<option value="${p.id}">${p.nombre} (stock: ${p.stock_actual})</option>`).join("");
+  select.innerHTML = productosCache
+    .map((p) => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.nombre)} (stock: ${escapeHtml(p.stock_actual)})</option>`)
+    .join("");
   document.getElementById("modal-stock").hidden = false;
 });
 document.getElementById("cerrar-modal-stock").addEventListener("click", () => {
