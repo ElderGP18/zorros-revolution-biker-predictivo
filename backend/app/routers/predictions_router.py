@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from .. import schemas
 from ..deps import get_db, require_role
-from ..ml import forecasting, reorder
+from ..ml import forecasting, reorder, series_profile
 
 router = APIRouter(prefix="/predictions", tags=["predicciones"])
 
@@ -37,3 +37,15 @@ def retrain(db: Session = Depends(get_db), _=Depends(require_role("admin"))):
 @router.get("/recommendations", response_model=List[schemas.RecommendationOut])
 def recommendations(db: Session = Depends(get_db), _=Depends(require_role("admin"))):
     return reorder.generar_recomendaciones(db)
+
+
+@router.get("/series-profile", response_model=schemas.SeriesProfileResponse)
+def series_profile_endpoint(db: Session = Depends(get_db), _=Depends(require_role("admin"))):
+    """Perfil de intermitencia de cada serie de demanda (cap. 2.2.3 de la tesis).
+
+    Trabaja sobre unidades por producto y día, no sobre el total en quetzales, y
+    clasifica cada producto segun Syntetos-Boylan-Croston para decidir que
+    estrategia de pronostico le corresponde.
+    """
+    perfiles = series_profile.perfilar_catalogo(db)
+    return {"resumen": series_profile.resumir(perfiles), "series": perfiles}
