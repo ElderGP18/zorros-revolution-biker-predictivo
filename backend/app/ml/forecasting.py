@@ -23,11 +23,22 @@ from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..config import settings
+from . import baselines, evaluation, metrics
 from . import calendar_features as cf
 
 ARTIFACTS_DIR = settings.ARTIFACTS_DIR or os.path.join(os.path.dirname(__file__), "artifacts")
 MODEL_PATH = os.path.join(ARTIFACTS_DIR, "sales_model.joblib")
 MIN_DIAS_ENTRENAMIENTO = 60
+
+# Un solo lugar para los hiperparámetros: antes estaban repetidos en tres sitios
+# (el modelo de evaluación, el final y el JSON de trazabilidad), de modo que
+# cambiar uno sin los otros dejaba un registro que mentía sobre lo entrenado.
+HIPERPARAMETROS = {"random_state": 42, "n_estimators": 200, "max_depth": 3, "learning_rate": 0.05}
+
+# Horizonte con el que se compara a los candidatos. Se usa 30 días porque es el
+# que consume el dashboard: evaluar a 7 y publicar para 30 sería medir otra cosa.
+HORIZONTE_EVALUACION = 30
+N_VENTANAS_EVALUACION = 5
 
 os.makedirs(ARTIFACTS_DIR, exist_ok=True)
 
@@ -86,8 +97,50 @@ def _mase(y_true: np.ndarray, y_pred: np.ndarray, y_naive: np.ndarray) -> float:
     return mae_modelo / mae_naive
 
 
+def _pronosticador_gbr(df: pd.DataFrame):
+    """Devuelve un pronosticador con la misma interfaz que las líneas base.
+
+    Reentrena el GradientBoosting en cada llamada usando SOLO el prefijo de la
+    serie que recibe, que es lo que hace honesta la validación de origen móvil:
+    en cada ventana el modelo se entrena como si estuviera parado en esa fecha.
+    """
+
+    def pronosticar(y_entrenamiento, h):
+        sub = df.iloc[: len(y_entrenamiento)]
+        feats = _construir_features(sub).dropna().reset_index(drop=True)
+        if len(feats) < 30:
+            raise ValueError("historial insuficiente tras calcular rezagos")
+        modelo = GradientBoostingRegressor(**HIPERPARAMETROS)
+        modelo.fit(feats[FEATURE_COLUMNS], feats["total"])
+        return np.array([valor for _, valor in _predecir_recursivo(modelo, sub, h)], dtype=float)
+
+    return pronosticar
+
+
+def _guardar_artefacto(modelo, version: str) -> str:
+    """Escribe el modelo de forma atómica y conserva una copia versionada.
+
+    Antes se hacía `joblib.dump` directamente sobre la ruta activa: un
+    entrenamiento concurrente con una petición de pronóstico podía cargar un
+    pickle a medio escribir. `os.replace` es atómico dentro del mismo sistema
+    de archivos. La copia versionada permite auditar y revertir (RF-09).
+    """
+    ruta_versionada = os.path.join(ARTIFACTS_DIR, f"sales_model_{version}.joblib")
+    joblib.dump(modelo, ruta_versionada)
+
+    temporal = MODEL_PATH + ".tmp"
+    joblib.dump(modelo, temporal)
+    os.replace(temporal, MODEL_PATH)
+    return ruta_versionada
+
+
 def entrenar_modelo(db: Session) -> schemas.RetrainResponse:
-    """Entrena (o recalibra) el modelo de pronóstico con todo el histórico disponible."""
+    """Compara el modelo de IA contra las líneas base y publica solo si gana.
+
+    Implementa el cap. 2.5 de la tesis: validación temporal con origen móvil,
+    métricas escaladas y criterio de aceptación. Si ningún candidato supera la
+    referencia, NO se publica nada y el modelo anterior se conserva intacto.
+    """
     df = _ventas_diarias(db)
     if len(df) < MIN_DIAS_ENTRENAMIENTO:
         raise ValueError(
@@ -98,38 +151,71 @@ def entrenar_modelo(db: Session) -> schemas.RetrainResponse:
     if len(feats) < 30:
         raise ValueError("No hay suficientes datos históricos (tras calcular rezagos) para entrenar el modelo.")
 
-    corte = max(int(len(feats) * 0.85), len(feats) - 30)
-    corte = min(corte, len(feats) - 1)
-    train, test = feats.iloc[:corte], feats.iloc[corte:]
+    serie = df["total"].to_numpy(dtype=float)
+    h = HORIZONTE_EVALUACION
 
-    X_train, y_train = train[FEATURE_COLUMNS], train["total"]
-    X_test, y_test = test[FEATURE_COLUMNS], test["total"]
+    if evaluation.ventanas_disponibles(serie.size, h, MIN_DIAS_ENTRENAMIENTO, N_VENTANAS_EVALUACION) == 0:
+        raise ValueError(
+            f"Se necesitan al menos {MIN_DIAS_ENTRENAMIENTO + h} días de historial para evaluar "
+            f"con un horizonte de {h} días."
+        )
 
-    modelo = GradientBoostingRegressor(random_state=42, n_estimators=200, max_depth=3, learning_rate=0.05)
-    modelo.fit(X_train, y_train)
+    # Todos los candidatos se evalúan bajo el mismo protocolo.
+    candidatos = {lb.nombre: (lambda lb: lambda y, k: lb.pronosticar(y, k))(lb) for lb in baselines.catalogo_por_defecto()}
+    candidatos["gradient_boosting"] = _pronosticador_gbr(df)
 
-    y_pred = modelo.predict(X_test)
-    y_naive = test["lag_7"].to_numpy()  # baseline: naive estacional (mismo día de la semana anterior)
+    ranking = evaluation.comparar_candidatos(serie, candidatos, h, N_VENTANAS_EVALUACION)
+    por_nombre = {e["nombre"]: e for e in ranking}
 
-    wape = _wape(y_test.to_numpy(), y_pred)
-    mase = _mase(y_test.to_numpy(), y_pred, y_naive)
+    eval_modelo = por_nombre.get("gradient_boosting", {"evaluado": False})
+    # La tesis fija el naive estacional como la referencia a batir (cap. 2.5.1).
+    eval_referencia = por_nombre.get("naive_estacional", {})
 
-    mae_naive_test = float(np.mean(np.abs(y_test.to_numpy() - y_naive))) or 1.0
-    mae_modelo_test = float(np.mean(np.abs(y_test.to_numpy() - y_pred)))
-    mejora_pct = (1 - (mae_modelo_test / mae_naive_test)) * 100
-
-    # Se re-entrena con TODO el histórico antes de publicar el modelo final que se usará para pronosticar.
-    modelo_final = GradientBoostingRegressor(random_state=42, n_estimators=200, max_depth=3, learning_rate=0.05)
-    modelo_final.fit(feats[FEATURE_COLUMNS], feats["total"])
-    joblib.dump(modelo_final, MODEL_PATH)
+    volumen_medio = float(np.mean(np.abs(serie[-h:]))) or 1.0
+    decision = evaluation.decidir_publicacion(eval_modelo, eval_referencia, volumen_medio)
 
     version = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    promedio = eval_modelo.get("promedio", {}) if eval_modelo.get("evaluado") else {}
+
+    ruta_artefacto = None
+    if decision["publicar"]:
+        # Reentrenamiento final con todo el histórico: el modelo que se publica ve
+        # más datos que el evaluado, práctica habitual, pero las métricas
+        # registradas son las de la validación, no las de este ajuste.
+        modelo_final = GradientBoostingRegressor(**HIPERPARAMETROS)
+        modelo_final.fit(feats[FEATURE_COLUMNS], feats["total"])
+        ruta_artefacto = _guardar_artefacto(modelo_final, version)
+
+    mejor = next((e["nombre"] for e in ranking if e.get("evaluado")), None)
+
     run = models.ModelRun(
-        algoritmo="GradientBoostingRegressor",
+        algoritmo="GradientBoostingRegressor" if decision["publicar"] else f"no_publicado (mejor: {mejor})",
         version=version,
-        mase=round(mase, 4),
-        wape=round(wape, 2),
-        parametros_json=json.dumps({"n_estimators": 200, "max_depth": 3, "learning_rate": 0.05}),
+        mase=round(promedio["mase"], 4) if promedio.get("mase") is not None else None,
+        wape=round(promedio["wape"], 2) if promedio.get("wape") is not None else None,
+        # ModelRun no tiene columnas para el detalle y el proyecto aún no usa
+        # migraciones, así que la evaluación completa se guarda aquí.
+        parametros_json=json.dumps(
+            {
+                "hiperparametros": HIPERPARAMETROS,
+                "protocolo": {
+                    "validacion": "origen_movil",
+                    "horizonte": h,
+                    "n_ventanas": eval_modelo.get("n_ventanas"),
+                    "periodo_estacional": metrics.PERIODO_ESTACIONAL,
+                },
+                "metricas_modelo": promedio,
+                "decision": decision,
+                "ranking": [
+                    {"nombre": e["nombre"], "mase": e.get("promedio", {}).get("mase"),
+                     "wape": e.get("promedio", {}).get("wape"), "evaluado": e.get("evaluado", False),
+                     "motivo": e.get("motivo")}
+                    for e in ranking
+                ],
+                "artefacto": ruta_artefacto,
+            },
+            default=str,
+        ),
     )
     db.add(run)
     db.commit()
@@ -141,7 +227,10 @@ def entrenar_modelo(db: Session) -> schemas.RetrainResponse:
         version=run.version,
         mase=run.mase,
         wape=run.wape,
-        mejora_vs_baseline_pct=round(mejora_pct, 1),
+        mejora_vs_baseline_pct=decision.get("mejora_pct"),
+        publicado=decision["publicar"],
+        motivo=decision["motivo"],
+        mejor_candidato=mejor,
     )
 
 
@@ -151,8 +240,44 @@ def _cargar_modelo():
     return joblib.load(MODEL_PATH)
 
 
+def _predecir_recursivo(modelo, df_hist: pd.DataFrame, dias: int) -> List[Tuple[pd.Timestamp, float]]:
+    """Predice día a día realimentando los rezagos con sus propias predicciones.
+
+    Recibe el modelo como parámetro (en vez de cargarlo de disco) para que la
+    validación de origen móvil pueda evaluar un modelo reentrenado en cada
+    ventana sin tocar el artefacto publicado.
+    """
+    resultados: List[Tuple[pd.Timestamp, float]] = []
+    if df_hist.empty:
+        return resultados
+
+    ultima_fecha = df_hist["fecha"].max()
+    historial = df_hist[["fecha", "total"]].copy()
+
+    for i in range(1, dias + 1):
+        fecha = ultima_fecha + timedelta(days=i)
+        serie = historial["total"]
+
+        fila = {"fecha": fecha}
+        fila.update(cf.features_dict(fecha))
+        fila["lag_1"] = float(serie.iloc[-1])
+        fila["lag_7"] = float(serie.iloc[-7]) if len(serie) >= 7 else float(serie.iloc[-1])
+        fila["lag_14"] = float(serie.iloc[-14]) if len(serie) >= 14 else float(serie.iloc[-1])
+        fila["lag_30"] = float(serie.iloc[-30]) if len(serie) >= 30 else float(serie.iloc[-1])
+        fila["media_movil_7"] = float(serie.tail(7).mean())
+        fila["media_movil_30"] = float(serie.tail(30).mean())
+
+        X = pd.DataFrame([fila])[FEATURE_COLUMNS]
+        pred = max(0.0, float(modelo.predict(X)[0]))
+        resultados.append((fecha, round(pred, 2)))
+
+        historial = pd.concat([historial, pd.DataFrame([{"fecha": fecha, "total": pred}])], ignore_index=True)
+
+    return resultados
+
+
 def _pronosticar_dias(df_hist: pd.DataFrame, dias: int) -> List[Tuple[pd.Timestamp, float]]:
-    """Pronostica día a día hacia adelante, realimentando los rezagos con sus propias predicciones."""
+    """Pronostica día a día hacia adelante usando el modelo publicado."""
     modelo = _cargar_modelo()
     resultados: List[Tuple[pd.Timestamp, float]] = []
 
@@ -176,27 +301,7 @@ def _pronosticar_dias(df_hist: pd.DataFrame, dias: int) -> List[Tuple[pd.Timesta
             resultados.append((fecha, round(float(base * factor), 2)))
         return resultados
 
-    historial = df_hist[["fecha", "total"]].copy()
-    for i in range(1, dias + 1):
-        fecha = ultima_fecha + timedelta(days=i)
-        serie = historial["total"]
-
-        fila = {"fecha": fecha}
-        fila.update(cf.features_dict(fecha))
-        fila["lag_1"] = float(serie.iloc[-1])
-        fila["lag_7"] = float(serie.iloc[-7]) if len(serie) >= 7 else float(serie.iloc[-1])
-        fila["lag_14"] = float(serie.iloc[-14]) if len(serie) >= 14 else float(serie.iloc[-1])
-        fila["lag_30"] = float(serie.iloc[-30]) if len(serie) >= 30 else float(serie.iloc[-1])
-        fila["media_movil_7"] = float(serie.tail(7).mean())
-        fila["media_movil_30"] = float(serie.tail(30).mean())
-
-        X = pd.DataFrame([fila])[FEATURE_COLUMNS]
-        pred = max(0.0, float(modelo.predict(X)[0]))
-        resultados.append((fecha, round(pred, 2)))
-
-        historial = pd.concat([historial, pd.DataFrame([{"fecha": fecha, "total": pred}])], ignore_index=True)
-
-    return resultados
+    return _predecir_recursivo(modelo, df_hist, dias)
 
 
 def proyeccion_proximo_mes(db: Session) -> Tuple[float, Optional[float]]:

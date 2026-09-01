@@ -22,6 +22,13 @@ class Settings(BaseSettings):
     # Vacío = usar la ruta por defecto junto al código (comportamiento en local).
     ARTIFACTS_DIR: str = ""
 
+    # Criterio de publicación de un modelo (cap. 2.5.1 de la tesis). La mejora
+    # mínima sobre el naive estacional se propone en 10 % "sujeta a revisión
+    # según el tamaño de la muestra", así que tiene que poder ajustarse con la
+    # empresa sin tocar código.
+    MEJORA_MINIMA_PUBLICACION: float = 0.10
+    SESGO_MAXIMO_RELATIVO: float = 0.20
+
     # Días promedio de envío desde China usados como default cuando un producto
     # no tiene su propio lead_time_dias_china configurado.
     LEAD_TIME_DEFAULT_DIAS: int = 60

@@ -180,6 +180,11 @@ class RetrainResponse(BaseModel):
     mase: Optional[float]
     wape: Optional[float]
     mejora_vs_baseline_pct: Optional[float]
+    # Un entrenamiento ya no implica una publicación: el modelo solo reemplaza al
+    # anterior si supera la línea base (cap. 2.5.1 de la tesis).
+    publicado: bool = False
+    motivo: Optional[str] = None
+    mejor_candidato: Optional[str] = None
 
 
 # ---------- Perfilamiento de series ----------
