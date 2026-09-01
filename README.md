@@ -1,9 +1,18 @@
 # Zorros Revolution Biker — Sistema Predictivo de Ventas e Inventario
 
+> ### Empieza por aquí
+>
+> - **[docs/ESTADO-Y-DESPLIEGUE.md](docs/ESTADO-Y-DESPLIEGUE.md)** — qué se hizo, cómo
+>   correrlo, cómo desplegar y qué trampas evitar. **Léelo antes de tocar código.**
+> - **[docs/ANALISIS-ALINEACION-TESIS.md](docs/ANALISIS-ALINEACION-TESIS.md)** — auditoría
+>   del código frente a lo que promete la tesis, y qué falta.
+>
+> **En producción:** https://prediccionzrb.duckdns.org
+
 Aplicación web funcional (no solo mockup) basada en el prototipo Stitch y la tesis del equipo:
 backend en **Python (FastAPI)**, frontend en **HTML/CSS/JavaScript** puro, base de datos vía
-**SQLAlchemy** (SQLite en desarrollo, **MySQL en producción/Hostinger**), y un motor de
-**Machine Learning (scikit-learn)** que:
+**SQLAlchemy** (SQLite en desarrollo, **PostgreSQL en producción** vía Docker Compose), y un
+motor de **Machine Learning (scikit-learn)** que:
 
 1. **Predice ventas futuras** (7 / 30 / 90 / 180 días) considerando la estacionalidad propia de
    Guatemala: diciembre (aguinaldo), Bono 14 (julio) y la Caravana del Zorro (febrero).
@@ -73,11 +82,23 @@ la proyección del próximo mes y el nivel de confianza real del modelo.
 No se necesita cambiar ningún archivo de código para pasar de SQLite a MySQL — solo la variable
 `DATABASE_URL`.
 
-## Desplegar en un VPS de Hostinger (producción)
+## Desplegar en producción
 
-Sigue la guía detallada en [`deploy/DEPLOY.md`](deploy/DEPLOY.md): clonar el repositorio, crear el
-entorno virtual, configurar `.env` con las credenciales reales de MySQL, levantar el servicio con
-Gunicorn + systemd, y exponerlo con Nginx + HTTPS (Let's Encrypt).
+La vía oficial es **Docker Compose + PostgreSQL**: sigue
+[`deploy/DEPLOY-DOCKER.md`](deploy/DEPLOY-DOCKER.md).
+
+Para actualizar lo que ya está desplegado basta con:
+
+```bash
+ssh zorros
+cd /var/www/zorros-prediccion
+git pull && docker compose up -d --build
+```
+
+> La guía manual con `venv` + systemd sigue en [`deploy/DEPLOY.md`](deploy/DEPLOY.md) como
+> alternativa, pero está desactualizada respecto al servidor actual (el puerto 8000 ya está
+> ocupado por otro proyecto y el VPS es compartido). Ver
+> [`docs/ESTADO-Y-DESPLIEGUE.md`](docs/ESTADO-Y-DESPLIEGUE.md) antes de usarla.
 
 ## Reglas de negocio implementadas
 
