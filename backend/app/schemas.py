@@ -180,3 +180,34 @@ class RetrainResponse(BaseModel):
     mase: Optional[float]
     wape: Optional[float]
     mejora_vs_baseline_pct: Optional[float]
+
+
+# ---------- Perfilamiento de series ----------
+class SeriesProfileOut(BaseModel):
+    product_id: int
+    sku: str
+    nombre: str
+    categoria: str
+    dias_historial: int
+    unidades_totales: float
+    media_diaria: float
+    proporcion_ceros: float
+    adi: float  # Average Demand Interval: días por cada día con demanda
+    cv2: float  # Coeficiente de variación al cuadrado de las cantidades positivas
+    clasificacion: str  # "regular" | "erratica" | "intermitente" | "grumosa"
+    estrategia_sugerida: str
+
+
+class SeriesProfileSummary(BaseModel):
+    productos_con_ventas: int
+    regular: int
+    erratica: int
+    intermitente: int
+    grumosa: int
+    pct_series_intermitentes: float
+    pct_volumen_modelable_directo: float
+
+
+class SeriesProfileResponse(BaseModel):
+    resumen: SeriesProfileSummary
+    series: List[SeriesProfileOut]
