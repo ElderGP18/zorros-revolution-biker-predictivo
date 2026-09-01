@@ -56,4 +56,7 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD curl -fsS http://127.0.0.1:8000/api/health || exit 1
 
-CMD ["gunicorn", "app.main:app", "-c", "gunicorn_conf.py"]
+# El esquema se crea en un paso previo y en un solo proceso: si se deja que lo
+# hagan los workers al importar la app, sobre PostgreSQL compiten creando los
+# tipos ENUM y uno muere con "duplicate key ... pg_type_typname_nsp_index".
+CMD ["sh", "-c", "python -m app.init_db && exec gunicorn app.main:app -c gunicorn_conf.py"]
