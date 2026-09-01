@@ -1,0 +1,39 @@
+# Sitio Nginx para prediccionzrb.duckdns.org
+#
+# IMPORTANTE: el VPS aloja otros proyectos en producción. Este archivo es
+# ADITIVO: se copia como un sitio nuevo y no se edita ningún otro archivo de
+# Nginx. Nótese que NO lleva `default_server`, para no capturar el tráfico de
+# los demás dominios.
+#
+#   sudo cp deploy/nginx.prediccionzrb.conf.example \
+#           /etc/nginx/sites-available/prediccionzrb.duckdns.org
+#   sudo ln -s /etc/nginx/sites-available/prediccionzrb.duckdns.org \
+#              /etc/nginx/sites-enabled/
+#   sudo nginx -t          # OBLIGATORIO antes de recargar
+#   sudo systemctl reload nginx
+#
+# Después, para HTTPS (certbot añade solo el bloque 443 a este archivo):
+#   sudo certbot --nginx -d prediccionzrb.duckdns.org
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name prediccionzrb.duckdns.org;
+
+    # Margen para la futura importación de históricos en CSV/XLSX.
+    client_max_body_size 25M;
+
+    # El entrenamiento del modelo corre dentro del request y con datos reales
+    # puede tardar minutos; sin esto Nginx corta con un 504 antes de que termine.
+    proxy_read_timeout 300s;
+    proxy_send_timeout 300s;
+
+    location / {
+        proxy_pass http://127.0.0.1:8020;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

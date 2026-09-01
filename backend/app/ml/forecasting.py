@@ -22,9 +22,10 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
+from ..config import settings
 from . import calendar_features as cf
 
-ARTIFACTS_DIR = os.path.join(os.path.dirname(__file__), "artifacts")
+ARTIFACTS_DIR = settings.ARTIFACTS_DIR or os.path.join(os.path.dirname(__file__), "artifacts")
 MODEL_PATH = os.path.join(ARTIFACTS_DIR, "sales_model.joblib")
 MIN_DIAS_ENTRENAMIENTO = 60
 
