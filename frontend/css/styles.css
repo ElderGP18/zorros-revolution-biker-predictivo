@@ -14,6 +14,11 @@
 
 * { box-sizing: border-box; }
 
+/* El atributo `hidden` debe ganarle a cualquier `display` declarado aquí.
+   Sin esta regla, `.modal-overlay { display: flex }` (origen de autor) vence a la
+   hoja del navegador y los modales quedan visibles de forma permanente. */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   background: var(--bg);

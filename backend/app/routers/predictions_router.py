@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from .. import schemas
@@ -11,7 +11,13 @@ router = APIRouter(prefix="/predictions", tags=["predicciones"])
 
 
 @router.get("/forecast", response_model=List[schemas.ForecastPoint])
-def forecast(horizonte: int = 30, db: Session = Depends(get_db), _=Depends(require_role("admin"))):
+def forecast(
+    # Acotado: la predicción es recursiva y sin límite un horizonte grande bloquea
+    # el worker (cada paso reconstruye el DataFrame del historial).
+    horizonte: int = Query(30, ge=1, le=180),
+    db: Session = Depends(get_db),
+    _=Depends(require_role("admin")),
+):
     return forecasting.serie_historica_y_pronostico(db, horizonte)
 
 

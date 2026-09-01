@@ -69,15 +69,15 @@ async function cargarRecomendaciones() {
       .slice(0, 6)
       .map(
         (r) => `
-        <div class="reco-item reco-${r.urgencia}">
-          <strong>${r.nombre}</strong>
-          <p>${r.mensaje}</p>
-          <span>Sugerido: ${r.cantidad_sugerida} unidades · Lead time China: ${r.lead_time_dias_china} días</span>
+        <div class="reco-item reco-${escapeHtml(r.urgencia)}">
+          <strong>${escapeHtml(r.nombre)}</strong>
+          <p>${escapeHtml(r.mensaje)}</p>
+          <span>Sugerido: ${escapeHtml(r.cantidad_sugerida)} unidades · Lead time China: ${escapeHtml(r.lead_time_dias_china)} días</span>
         </div>`
       )
       .join("");
   } catch (err) {
-    contenedor.innerHTML = `<p class="empty-state">${err.message}</p>`;
+    contenedor.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`;
   }
 }
 

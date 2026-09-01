@@ -74,14 +74,14 @@ async function cargarSenales() {
         <span class="badge ${s.tendencia === "alta_demanda" ? "badge-alta" : "badge-baja"}">
           ${s.tendencia === "alta_demanda" ? "ALTA DEMANDA" : "BAJA DEMANDA"}
         </span>
-        <strong>${s.nombre}</strong>
-        <p>Categoría: ${s.categoria}</p>
-        <span>${s.magnitud_pct > 0 ? "+" : ""}${s.magnitud_pct}% vs. periodo anterior</span>
+        <strong>${escapeHtml(s.nombre)}</strong>
+        <p>Categoría: ${escapeHtml(s.categoria)}</p>
+        <span>${s.magnitud_pct > 0 ? "+" : ""}${escapeHtml(s.magnitud_pct)}% vs. periodo anterior</span>
       </div>`
       )
       .join("");
   } catch (err) {
-    contenedor.innerHTML = `<p class="empty-state">${err.message}</p>`;
+    contenedor.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`;
   }
 }
 
@@ -96,15 +96,15 @@ async function cargarRecomendaciones() {
     contenedor.innerHTML = recos
       .map(
         (r) => `
-      <div class="reco-item reco-${r.urgencia}">
-        <strong>${r.nombre} <small>(${r.sku})</small></strong>
-        <p>${r.mensaje}</p>
-        <span>Stock actual: ${r.stock_actual} · Sugerido: ${r.cantidad_sugerida} und. · Lead time: ${r.lead_time_dias_china} días</span>
+      <div class="reco-item reco-${escapeHtml(r.urgencia)}">
+        <strong>${escapeHtml(r.nombre)} <small>(${escapeHtml(r.sku)})</small></strong>
+        <p>${escapeHtml(r.mensaje)}</p>
+        <span>Stock actual: ${escapeHtml(r.stock_actual)} · Sugerido: ${escapeHtml(r.cantidad_sugerida)} und. · Lead time: ${escapeHtml(r.lead_time_dias_china)} días</span>
       </div>`
       )
       .join("");
   } catch (err) {
-    contenedor.innerHTML = `<p class="empty-state">${err.message}</p>`;
+    contenedor.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`;
   }
 }
 

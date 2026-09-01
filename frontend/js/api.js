@@ -60,6 +60,15 @@ function requireAuth() {
   }
 }
 
+const ENTIDADES_HTML = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+
+// Escapa datos del servidor antes de interpolarlos en plantillas de innerHTML.
+// Sin esto, un nombre de producto con `<img onerror=...>` ejecuta código con la
+// sesión del usuario (el token vive en localStorage).
+function escapeHtml(valor) {
+  return String(valor ?? "").replace(/[&<>"']/g, (c) => ENTIDADES_HTML[c]);
+}
+
 function formatoQ(valor) {
   const num = Number(valor || 0);
   return "Q " + num.toLocaleString("es-GT", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
