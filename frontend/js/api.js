@@ -30,7 +30,7 @@ async function api(path, options = {}) {
   const token = getToken();
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const response = await fetch(API_BASE + path, { ...options, headers });
+  const response = await fetch(API_BASE + path, { ...options, cache: "no-store", headers });
 
   if (response.status === 401) {
     clearSession();
