@@ -38,13 +38,14 @@ async function cargarPronostico() {
     document.getElementById("kpi-volumen-proyectado").textContent = formatoQ(total);
 
     if (chartInstancia) chartInstancia.destroy();
+    const colors = getUiChartColors();
     chartInstancia = new Chart(document.getElementById("chart-pronostico"), {
       type: "line",
       data: {
         labels,
         datasets: [
-          { label: "Histórico real", data: real, borderColor: "#D7D0C0", backgroundColor: "rgba(215,208,192,0.05)", spanGaps: true, tension: 0.34, borderWidth: 2, pointRadius: 0, pointHoverRadius: 5 },
-          { label: "Predicción IA", data: pronostico, borderColor: "#FF5500", backgroundColor: "rgba(255,85,0,0.12)", spanGaps: true, tension: 0.34, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, fill: true },
+          { label: "Histórico real", data: real, borderColor: colors.secondary, backgroundColor: "transparent", spanGaps: true, tension: 0.34, borderWidth: 2, pointRadius: 0, pointHoverRadius: 5 },
+          { label: "Predicción IA", data: pronostico, borderColor: colors.accent, backgroundColor: colors.fill, spanGaps: true, tension: 0.34, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, fill: true },
         ],
       },
       options: {
@@ -52,10 +53,10 @@ async function cargarPronostico() {
         maintainAspectRatio: false,
         interaction: { intersect: false, mode: "index" },
         animation: { duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700 },
-        plugins: { legend: { position: "bottom", align: "start", labels: { color: "#D7D0C0", usePointStyle: true, boxWidth: 7, padding: 20 } } },
+        plugins: { legend: { position: "bottom", align: "start", labels: { color: colors.secondary, usePointStyle: true, boxWidth: 7, padding: 20 } } },
         scales: {
-          x: { ticks: { color: "#979183", maxTicksLimit: 10, maxRotation: 0 }, grid: { display: false }, border: { display: false } },
-          y: { ticks: { color: "#979183", callback: (value) => `Q ${Number(value).toLocaleString("es-GT")}` }, grid: { color: "rgba(245,240,227,0.06)" }, border: { display: false } },
+          x: { ticks: { color: colors.muted, maxTicksLimit: 10, maxRotation: 0 }, grid: { display: false }, border: { display: false } },
+          y: { ticks: { color: colors.muted, callback: (value) => `Q ${Number(value).toLocaleString("es-GT")}` }, grid: { color: colors.grid }, border: { display: false } },
         },
       },
     });
@@ -142,6 +143,20 @@ document.getElementById("btn-recalibrar").addEventListener("click", async () => 
   }
 });
 
+function actualizarTemaGrafica() {
+  if (!chartInstancia) return;
+  const colors = getUiChartColors();
+  chartInstancia.data.datasets[0].borderColor = colors.secondary;
+  chartInstancia.data.datasets[1].borderColor = colors.accent;
+  chartInstancia.data.datasets[1].backgroundColor = colors.fill;
+  chartInstancia.options.plugins.legend.labels.color = colors.secondary;
+  chartInstancia.options.scales.x.ticks.color = colors.muted;
+  chartInstancia.options.scales.y.ticks.color = colors.muted;
+  chartInstancia.options.scales.y.grid.color = colors.grid;
+  chartInstancia.update("none");
+}
+
+document.addEventListener("zorros:theme-change", actualizarTemaGrafica);
 document.getElementById("horizonte").addEventListener("change", cargarPronostico);
 
 cargarPronostico();

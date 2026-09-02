@@ -1,5 +1,7 @@
 initNav("dashboard");
 
+let chartTendencia = null;
+
 async function cargarResumen() {
   try {
     const data = await api("/dashboard/summary");
@@ -31,13 +33,14 @@ async function cargarTendencia() {
     const real = puntos.map((p) => p.real);
     const proyectado = puntos.map((p) => p.proyectado);
 
-    new Chart(document.getElementById("chart-tendencia"), {
+    const colors = getUiChartColors();
+    chartTendencia = new Chart(document.getElementById("chart-tendencia"), {
       type: "line",
       data: {
         labels,
         datasets: [
-          { label: "Real", data: real, borderColor: "#FF5500", backgroundColor: "rgba(255,85,0,0.12)", spanGaps: true, tension: 0.34, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, fill: true },
-          { label: "Proyectado", data: proyectado, borderColor: "#D7D0C0", borderDash: [7, 5], spanGaps: true, tension: 0.34, borderWidth: 2, pointRadius: 0, pointHoverRadius: 5 },
+          { label: "Real", data: real, borderColor: colors.accent, backgroundColor: colors.fill, spanGaps: true, tension: 0.34, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, fill: true },
+          { label: "Proyectado", data: proyectado, borderColor: colors.secondary, borderDash: [7, 5], spanGaps: true, tension: 0.34, borderWidth: 2, pointRadius: 0, pointHoverRadius: 5 },
         ],
       },
       options: {
@@ -45,10 +48,10 @@ async function cargarTendencia() {
         maintainAspectRatio: false,
         interaction: { intersect: false, mode: "index" },
         animation: { duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700 },
-        plugins: { legend: { position: "bottom", align: "start", labels: { color: "#D7D0C0", usePointStyle: true, boxWidth: 7, padding: 20 } } },
+        plugins: { legend: { position: "bottom", align: "start", labels: { color: colors.secondary, usePointStyle: true, boxWidth: 7, padding: 20 } } },
         scales: {
-          x: { ticks: { color: "#979183", maxRotation: 0, maxTicksLimit: 7 }, grid: { display: false }, border: { display: false } },
-          y: { ticks: { color: "#979183", callback: (value) => `Q ${Number(value).toLocaleString("es-GT")}` }, grid: { color: "rgba(245,240,227,0.06)" }, border: { display: false } },
+          x: { ticks: { color: colors.muted, maxRotation: 0, maxTicksLimit: 7 }, grid: { display: false }, border: { display: false } },
+          y: { ticks: { color: colors.muted, callback: (value) => `Q ${Number(value).toLocaleString("es-GT")}` }, grid: { color: colors.grid }, border: { display: false } },
         },
       },
     });
@@ -89,6 +92,21 @@ async function cargarRecomendaciones() {
     contenedor.setAttribute("aria-busy", "false");
   }
 }
+
+function actualizarTemaGrafica() {
+  if (!chartTendencia) return;
+  const colors = getUiChartColors();
+  chartTendencia.data.datasets[0].borderColor = colors.accent;
+  chartTendencia.data.datasets[0].backgroundColor = colors.fill;
+  chartTendencia.data.datasets[1].borderColor = colors.secondary;
+  chartTendencia.options.plugins.legend.labels.color = colors.secondary;
+  chartTendencia.options.scales.x.ticks.color = colors.muted;
+  chartTendencia.options.scales.y.ticks.color = colors.muted;
+  chartTendencia.options.scales.y.grid.color = colors.grid;
+  chartTendencia.update("none");
+}
+
+document.addEventListener("zorros:theme-change", actualizarTemaGrafica);
 
 cargarResumen();
 cargarTendencia();

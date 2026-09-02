@@ -54,7 +54,7 @@ function cerrarDialogo(modal) {
 }
 
 function atraparFoco(evento, modal) {
-  const selectores = "button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href]";
+  const selectores = "button:not([disabled]), input:not([disabled]):not([type='hidden']), select:not([disabled]), textarea:not([disabled]), a[href]";
   const elementos = [...modal.querySelectorAll(selectores)].filter((el) => !el.hidden);
   if (!elementos.length) return;
   const primero = elementos[0];
@@ -104,6 +104,69 @@ function initPasswordToggles() {
   });
 }
 
+function actualizarBotonTema(boton, tema) {
+  const esClaro = tema === "light";
+  boton.innerHTML = iconSvg(esClaro ? "moon" : "sun");
+  boton.setAttribute("aria-label", esClaro ? "Activar modo oscuro" : "Activar modo claro");
+  boton.title = esClaro ? "Modo oscuro" : "Modo claro";
+}
+
+function actualizarMetaTema(tema) {
+  document.documentElement.style.colorScheme = tema;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute(
+    "content",
+    tema === "light" ? "#f1ede6" : "#0a0a09"
+  );
+}
+
+function getUiChartColors() {
+  const estilos = getComputedStyle(document.documentElement);
+  const color = (token) => estilos.getPropertyValue(token).trim();
+  return {
+    accent: color("--accent"),
+    secondary: color("--chart-secondary"),
+    muted: color("--chart-muted"),
+    grid: color("--chart-grid"),
+    fill: color("--chart-fill"),
+  };
+}
+
+function initTema() {
+  const botones = document.querySelectorAll("[data-theme-toggle]");
+  const temaActual = document.documentElement.dataset.theme || "dark";
+  actualizarMetaTema(temaActual);
+  botones.forEach((boton) => {
+    actualizarBotonTema(boton, temaActual);
+    boton.addEventListener("click", () => {
+      const nuevoTema = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+      document.documentElement.dataset.theme = nuevoTema;
+      try {
+        localStorage.setItem("zorros_theme", nuevoTema);
+      } catch (error) {
+        console.warn("No fue posible guardar la preferencia de tema", error);
+      }
+      actualizarMetaTema(nuevoTema);
+      botones.forEach((control) => actualizarBotonTema(control, nuevoTema));
+      document.dispatchEvent(new CustomEvent("zorros:theme-change", { detail: { tema: nuevoTema } }));
+    });
+  });
+  window.addEventListener("storage", (evento) => {
+    if (evento.key !== "zorros_theme" || !["light", "dark"].includes(evento.newValue)) return;
+    document.documentElement.dataset.theme = evento.newValue;
+    actualizarMetaTema(evento.newValue);
+    botones.forEach((control) => actualizarBotonTema(control, evento.newValue));
+    document.dispatchEvent(new CustomEvent("zorros:theme-change", { detail: { tema: evento.newValue } }));
+  });
+}
+
+function initCacheEstatico() {
+  if (!("serviceWorker" in navigator)) return;
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" })
+      .catch((error) => console.warn("Cache no disponible", error));
+  });
+}
+
 function initUi() {
   const region = document.createElement("div");
   region.id = "toast-region";
@@ -112,6 +175,8 @@ function initUi() {
   document.body.appendChild(region);
   initModales();
   initPasswordToggles();
+  initTema();
+  initCacheEstatico();
   window.requestAnimationFrame(() => document.body.classList.add("ui-ready"));
 }
 

@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#0a0a09" />
   <title>Ventas · Zorros Revolution Biker</title>
   <link rel="icon" href="/assets/ZORROS%20LOGO.svg" type="image/svg+xml" />
+  <script src="/js/theme-init.js"></script>
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body class="app-page">
@@ -26,7 +27,7 @@
     </nav>
     <div class="sidebar-user">
       <div class="user-summary"><span class="user-avatar" id="user-initial" aria-hidden="true">Z</span><span class="user-copy"><strong id="nombre-usuario">Cargando</strong><small id="rol-usuario">Sesión activa</small></span></div>
-      <button type="button" id="btn-logout" class="btn-icon" title="Cerrar sesión" aria-label="Cerrar sesión"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-log-out"></use></svg></button>
+      <div class="sidebar-user-actions"><button type="button" class="btn-icon" data-theme-toggle aria-label="Activar modo claro"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-sun"></use></svg></button><button type="button" id="btn-logout" class="btn-icon" title="Cerrar sesión" aria-label="Cerrar sesión"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-log-out"></use></svg></button></div>
     </div>
   </aside>
 
@@ -63,8 +64,9 @@
       <h2 id="modal-venta-title">Nueva venta</h2>
       <button type="button" class="btn-icon" id="btn-cerrar-modal" data-modal-close title="Cerrar" aria-label="Cerrar nueva venta"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-close"></use></svg></button>
     </div>
-    <form id="form-venta">
-      <div id="items-venta" aria-live="polite"></div>
+    <form id="form-venta" novalidate>
+      <div id="items-venta"></div>
+      <p id="venta-status" class="sr-only" role="status" aria-live="polite"></p>
       <button type="button" class="btn btn-ghost" id="btn-agregar-item"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-plus"></use></svg><span>Agregar producto</span></button>
 
       <label for="metodo-pago">Método de pago</label>

@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#0a0a09" />
   <title>Usuarios · Zorros Revolution Biker</title>
   <link rel="icon" href="/assets/ZORROS%20LOGO.svg" type="image/svg+xml" />
+  <script src="/js/theme-init.js"></script>
   <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body class="app-page">
@@ -26,7 +27,7 @@
     </nav>
     <div class="sidebar-user">
       <div class="user-summary"><span class="user-avatar" id="user-initial" aria-hidden="true">Z</span><span class="user-copy"><strong id="nombre-usuario">Cargando</strong><small id="rol-usuario">Sesión activa</small></span></div>
-      <button type="button" id="btn-logout" class="btn-icon" title="Cerrar sesión" aria-label="Cerrar sesión"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-log-out"></use></svg></button>
+      <div class="sidebar-user-actions"><button type="button" class="btn-icon" data-theme-toggle aria-label="Activar modo claro"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-sun"></use></svg></button><button type="button" id="btn-logout" class="btn-icon" title="Cerrar sesión" aria-label="Cerrar sesión"><svg class="icon" aria-hidden="true"><use href="/assets/icons.svg#icon-log-out"></use></svg></button></div>
     </div>
   </aside>
 
