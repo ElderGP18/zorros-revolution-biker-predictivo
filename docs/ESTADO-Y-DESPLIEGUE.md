@@ -249,9 +249,20 @@ El detalle completo, con evidencia archivo:línea, está en
 [`ANALISIS-ALINEACION-TESIS.md`](ANALISIS-ALINEACION-TESIS.md). Lo esencial:
 
 **Bloqueante para la tesis**
-1. **Datos reales de la empresa.** Hoy todo corre con `seed_data.py`, cuyo generador
-   usa las mismas funciones de calendario que el modelo recibe como features: las
-   métricas son circulares y no prueban nada.
+1. **Datos reales de la empresa.** No hubo acceso al histórico, así que todo corre
+   con ventas simuladas por `simular_ventas.py`. El simulador **no comparte ninguna
+   función con las features del modelo** (hay una prueba que lo verifica), de modo que
+   la evaluación ya no es circular — pero sigue siendo una simulación. Con datos
+   simulados no circulares el modelo pasa el criterio con **22 % de mejora** sobre el
+   naïve estacional (antes, con el generador circular, marcaba un 35 % engañoso).
+
+   ```bash
+   docker compose exec api python -m app.simular_ventas --meses 12 --confirmar
+   ```
+
+   Con 12 meses cada evento anual aparece **una sola vez**: el primer Bono 14 que el
+   modelo ve cae en la ventana de evaluación, no en la de entrenamiento, y por eso
+   subestima ese pico. Es una limitación real que hay que declarar en la tesis.
 2. **El motor pronostica el total diario de la empresa en quetzales**, no unidades por
    producto. `sale_items` ya tiene los datos por SKU y el pipeline los descarta.
 3. **No hay líneas base** (ARIMA, Prophet, suavizamiento) ni validación de origen móvil.
@@ -306,7 +317,8 @@ backend/app/
   schemas.py              Modelos Pydantic (contratos de la API)
   security.py             Hash de contraseñas y JWT
   deps.py                 Sesión de BD y control de roles (require_role)
-  seed_data.py            Generador de datos sintéticos
+  seed_data.py            Usuarios demo + catálogo; delega las ventas al simulador
+  simular_ventas.py       Simulador de ventas (calendario real, Poisson, quiebres de stock)
   routers/                Un archivo por área de la API
   ml/
     forecasting.py        Motor de pronóstico (entrena, predice, señales)
