@@ -105,7 +105,7 @@ Entregar el turno:
 
 ### P4 — Resultados, limitaciones y siguiente fase (2.5 min, diapositivas 9–12)
 
-**Diapositiva 9 — Perfil del catálogo.** Tabla: 25 productos, **100 % series intermitentes**, ~65 % de días sin venta, ADI ≈ 3.
+**Diapositiva 9 — Perfil del catálogo.** Tabla: 25 productos, **100 % series intermitentes**, ~77 % de días sin venta, ADI ≈ 5.
 > "Antes de modelar, perfilamos las series como pide el cap. 2.2.3. El resultado: todo el catálogo es demanda intermitente. Eso determina la estrategia: un regresor diario por producto aprendería a predecir cero. Por eso el modelo actual trabaja sobre el agregado, y el paso siguiente es agregar semanalmente por producto."
 
 **Diapositiva 10 — Ranking de candidatos.** La tabla completa:
@@ -163,7 +163,7 @@ Cierre:
 - 6 módulos funcionales · 9 PRs mezclados · **128 pruebas automatizadas**
 - 6 líneas base · 5 ventanas de origen móvil · horizonte de 30 días
 - MASE **0.803** vs naïve estacional **1.034** → **22.35 % de mejora**, consistencia 4 de 5
-- 25 productos, **100 % intermitentes**, ~65 % de días sin venta
+- 25 productos, **100 % intermitentes**, ~77 % de días sin venta, ADI medio 5.2
 - 12 meses simulados: 366 días, 1,607 tickets, 2,492 unidades, 424 perdidas por stock
 - Producción: 1 núcleo, ~350 MB de RAM, HTTPS con renovación automática
 
