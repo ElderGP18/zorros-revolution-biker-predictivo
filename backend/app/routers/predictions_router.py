@@ -34,6 +34,12 @@ def retrain(db: Session = Depends(get_db), _=Depends(require_role("admin"))):
         raise HTTPException(status_code=400, detail=str(exc))
 
 
+@router.get("/model", response_model=schemas.ModelStatusResponse)
+def model_status(db: Session = Depends(get_db), _=Depends(require_role("admin"))):
+    """Último entrenamiento registrado, para mostrarlo al abrir la pantalla."""
+    return forecasting.estado_del_modelo(db)
+
+
 @router.get("/recommendations", response_model=List[schemas.RecommendationOut])
 def recommendations(db: Session = Depends(get_db), _=Depends(require_role("admin"))):
     return reorder.generar_recomendaciones(db)

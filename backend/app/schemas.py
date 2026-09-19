@@ -258,6 +258,23 @@ class RetrainResponse(BaseModel):
     mejor_candidato: Optional[str] = None
 
 
+class ModelStatusResponse(BaseModel):
+    """Último entrenamiento registrado, se haya publicado o no."""
+
+    model_config = ConfigDict(protected_namespaces=())
+
+    entrenado: bool
+    publicado: bool
+    model_run_id: Optional[int] = None
+    algoritmo: Optional[str] = None
+    version: Optional[str] = None
+    fecha: Optional[datetime] = None
+    mase: Optional[float] = None
+    wape: Optional[float] = None
+    mejora_vs_baseline_pct: Optional[float] = None
+    motivo: Optional[str] = None
+
+
 # ---------- Perfilamiento de series ----------
 class SeriesProfileOut(BaseModel):
     product_id: int

@@ -125,14 +125,42 @@ function mostrarProximoEvento() {
   document.getElementById("kpi-proximo-evento").textContent = `${ev.nombre} (${ev.dias} días)`;
 }
 
+function formatoFechaCorta(iso) {
+  if (!iso) return "";
+  const fecha = new Date(iso);
+  if (Number.isNaN(fecha.getTime())) return "";
+  return fecha.toLocaleDateString("es-GT", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function pintarEstadoModelo(estado) {
+  const valor = document.getElementById("kpi-ultimo-modelo");
+  const detalle = document.getElementById("kpi-metricas");
+  const fecha = formatoFechaCorta(estado.fecha);
+  if (estado.publicado) {
+    valor.textContent = estado.algoritmo;
+    detalle.textContent =
+      `${fecha ? `${fecha} · ` : ""}MASE: ${estado.mase} · WAPE: ${estado.wape}% · Mejora vs. base: ${estado.mejora_vs_baseline_pct}%`;
+    return;
+  }
+  valor.textContent = "No publicado";
+  detalle.textContent = `${fecha ? `${fecha} · ` : ""}${estado.motivo || "El candidato no superó la referencia"}`;
+}
+
+async function cargarEstadoModelo() {
+  try {
+    const estado = await api("/predictions/model");
+    if (estado.entrenado) pintarEstadoModelo(estado);
+  } catch (err) {
+    console.warn("No se pudo consultar el último entrenamiento:", err.message);
+  }
+}
+
 document.getElementById("btn-recalibrar").addEventListener("click", async () => {
   const boton = document.getElementById("btn-recalibrar");
   setButtonLoading(boton, true, "Entrenando modelo");
   try {
     const resultado = await api("/predictions/retrain", { method: "POST" });
-    document.getElementById("kpi-ultimo-modelo").textContent = resultado.algoritmo;
-    document.getElementById("kpi-metricas").textContent =
-      `MASE: ${resultado.mase} · WAPE: ${resultado.wape}% · Mejora vs. base: ${resultado.mejora_vs_baseline_pct}%`;
+    pintarEstadoModelo({ ...resultado, fecha: new Date().toISOString() });
     await cargarPronostico();
     await cargarRecomendaciones();
     showToast("Modelo recalibrado correctamente.");
@@ -160,6 +188,7 @@ document.addEventListener("zorros:theme-change", actualizarTemaGrafica);
 document.getElementById("horizonte").addEventListener("change", cargarPronostico);
 
 cargarPronostico();
+cargarEstadoModelo();
 cargarSenales();
 cargarRecomendaciones();
 mostrarProximoEvento();

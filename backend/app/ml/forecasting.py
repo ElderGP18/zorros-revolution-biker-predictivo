@@ -234,6 +234,39 @@ def entrenar_modelo(db: Session) -> schemas.RetrainResponse:
     )
 
 
+def estado_del_modelo(db: Session) -> schemas.ModelStatusResponse:
+    """Describe el último entrenamiento registrado, publicado o no (RF-09).
+
+    La pantalla de pronóstico solo conocía el resultado del botón Recalibrar y
+    mostraba "Sin entrenar" al abrirse aunque existiera un modelo publicado.
+    """
+    run = db.query(models.ModelRun).order_by(models.ModelRun.id.desc()).first()
+    if run is None:
+        return schemas.ModelStatusResponse(entrenado=False, publicado=False)
+
+    detalle = {}
+    if run.parametros_json:
+        try:
+            detalle = json.loads(run.parametros_json)
+        except ValueError:
+            detalle = {}
+    decision = detalle.get("decision") or {}
+    publicado = decision["publicar"] if "publicar" in decision else not run.algoritmo.startswith("no_publicado")
+
+    return schemas.ModelStatusResponse(
+        entrenado=True,
+        publicado=bool(publicado),
+        model_run_id=run.id,
+        algoritmo=run.algoritmo,
+        version=run.version,
+        fecha=run.fecha,
+        mase=run.mase,
+        wape=run.wape,
+        mejora_vs_baseline_pct=decision.get("mejora_pct"),
+        motivo=decision.get("motivo"),
+    )
+
+
 def _cargar_modelo():
     if not os.path.exists(MODEL_PATH):
         return None
