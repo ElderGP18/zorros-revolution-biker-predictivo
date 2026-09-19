@@ -1,6 +1,6 @@
 # Capítulo VI – Desarrollo de la Solución Tecnológica
 
-Este capítulo documenta la construcción de la solución: el tipo de sistema, sus requerimientos, su diseño, la forma en que se implementó y cómo se probó. Integra y actualiza el Entregable de Ingeniería preliminar de la versión anterior del documento (secciones 4.1 a 4.3), que se elaboró antes de construir el sistema. Donde el diseño final difiere del preliminar se indica la diferencia y su justificación, de modo que la documentación describa el sistema que existe y no el que se propuso.
+Este capítulo documenta la construcción de la solución: el tipo de sistema, sus requerimientos, su diseño, la forma en que se implementó y cómo se probó. Integra y actualiza la documentación técnica preliminar de la sección 3.5, elaborada antes de construir el sistema. Donde el diseño final difiere del preliminar se indica la diferencia y su justificación, de modo que la documentación describa el sistema que existe y no el que se propuso.
 
 ## 6.1 Tipo de sistema propuesto
 
@@ -21,7 +21,7 @@ La combinación TPS-DSS explica la arquitectura en capas de la sección 6.3.1: l
 
 ### 6.2.1 Fuentes y método
 
-Los requerimientos provienen de tres fuentes: el planteamiento del problema y los objetivos del Capítulo I; el backlog preliminar del Entregable de Ingeniería, elaborado con la escala MoSCoW; y la auditoría de alineación entre el documento y el sistema realizada al inicio de la fase, que contrastó cada requerimiento con el código. Se redactaron de forma numerada y verificable, conforme a la norma ISO/IEC/IEEE 29148 (International Organization for Standardization, 2018), y los no funcionales se asociaron a las características de calidad de la norma ISO/IEC 25010 (International Organization for Standardization, 2011). A cada requerimiento se le añade su estado en el MVP, lo que permite trazarlo hacia las pruebas de la sección 6.5.
+Los requerimientos provienen de tres fuentes: el planteamiento del problema y los objetivos del Capítulo I; el backlog preliminar de la sección 3.5, elaborado con la escala MoSCoW; y la auditoría de alineación entre el documento y el sistema realizada al inicio de la fase, que contrastó cada requerimiento con el código. Se redactaron de forma numerada y verificable, conforme a la norma ISO/IEC/IEEE 29148 (International Organization for Standardization, 2018), y los no funcionales se asociaron a las características de calidad de la norma ISO/IEC 25010 (International Organization for Standardization, 2011). A cada requerimiento se le añade su estado en el MVP, lo que permite trazarlo hacia las pruebas de la sección 6.5.
 
 ### 6.2.2 Requerimientos funcionales
 
@@ -216,6 +216,7 @@ La API sigue el estilo REST (Fielding, 2000): recursos identificados por rutas, 
 | GET | /predictions/recommendations | Recomendaciones de reabastecimiento | Administrador |
 | GET | /predictions/series-profile | Perfil de intermitencia por producto | Administrador |
 | POST | /predictions/retrain | Evaluar candidatos y publicar si procede | Administrador |
+| GET | /predictions/model | Último entrenamiento registrado: algoritmo, métricas y si se publicó | Administrador |
 | GET, POST | /users | Cuentas | Administrador |
 | PUT | /users/{id}/rol, /users/{id}/estado, /users/{id}/password | Rol, activación y restablecimiento | Administrador |
 | GET | /api/health | Verificación de salud | Público |
@@ -264,7 +265,7 @@ Dos decisiones de diseño merecen justificación explícita. La primera es evalu
 
 ### 6.3.5 Diseño de la interfaz
 
-La interfaz consta de seis módulos, cada uno en una pantalla: acceso, centro de control, ventas, productos e inventario, pronóstico y usuarios. Los wireframes del Entregable de Ingeniería (Figuras 4 a 6) guiaron la estructura: navegación lateral con la opción activa resaltada, indicadores en tarjetas, gráfica que distingue histórico de pronóstico por color y por trazo, y panel lateral de señales y recomendaciones. Respecto de los wireframes, los módulos de importación y de configuración no se construyeron, y el módulo de usuarios, que el preliminar dejaba fuera, se incorporó por el requerimiento RF-19.
+La interfaz consta de seis módulos, cada uno en una pantalla: acceso, centro de control, ventas, productos e inventario, pronóstico y usuarios. Los wireframes de la sección 3.5 (Figuras 4 a 6) guiaron la estructura: navegación lateral con la opción activa resaltada, indicadores en tarjetas, gráfica que distingue histórico de pronóstico por color y por trazo, y panel lateral de señales y recomendaciones. Respecto de los wireframes, los módulos de importación y de configuración no se construyeron, y el módulo de usuarios, que el preliminar dejaba fuera, se incorporó por el requerimiento RF-19.
 
 El diseño atiende los criterios del RNF-06: enlace para saltar al contenido, etiquetas asociadas a todos los campos, anuncio de los mensajes de estado a los lectores de pantalla, cierre de ventanas emergentes con la tecla Escape, tablas con encabezados declarados y contraste de la paleta revisado, con ajustes pendientes en los mensajes de error. La evaluación formal contra WCAG 2.2 (World Wide Web Consortium, 2023) queda pendiente. Las pantallas se documentan en el manual de usuario, versión 0.2, y se muestran como evidencia en la sección 6.4.5.
 
@@ -380,6 +381,7 @@ La ejecución del plan detectó defectos que se corrigieron con su prueba de reg
 | Las métricas indefinidas devolvían cero, lo que se presentaba como error perfecto | Prueba unitaria de casos límite | Valor indefinido explícito (CP-09) |
 | Los umbrales de publicación no eran configurables por estar fijados al definir la función | Prueba de la vía de rechazo | Lectura de la configuración en tiempo de llamada (CP-14) |
 | La pantalla de acceso mostraba las credenciales de administrador | Búsqueda de credenciales en el repositorio | Eliminadas; contraseñas generadas al azar |
+| La pantalla de pronóstico indicaba "Sin entrenar" al abrirse aunque existiera un modelo publicado | Revisión de las capturas para este documento | Consulta del último entrenamiento al cargar la pantalla, con cinco pruebas de la vía |
 
 Tabla 45. Defectos detectados durante las pruebas y su corrección. Fuente: Elaboración propia.
 

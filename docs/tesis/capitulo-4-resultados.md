@@ -227,15 +227,15 @@ En conjunto, los datos permiten afirmar lo siguiente respecto de los objetivos e
 
 ### 4.3.1 Formulación
 
-El Capítulo I plantea una interrogante de investigación y no una hipótesis formal, dado el alcance descriptivo y correlacional declarado en la sección 3.1. No obstante, el criterio técnico de la sección 2.5.1 contiene una afirmación comprobable que el diseño no experimental de esta fase sí permite contrastar: que el modelo de aprendizaje automático produce un error escalado menor que el método de referencia naïve estacional. De ella se derivan los enunciados siguientes, donde d_i es la diferencia MASE_modelo − MASE_referencia en la ventana i y μ_d su media.
+El Capítulo I plantea una interrogante de investigación y no una hipótesis formal, dado el alcance descriptivo y correlacional declarado en la sección 3.1. No obstante, el criterio técnico de la sección 2.5.1 contiene una afirmación comprobable que el diseño no experimental de esta fase sí permite contrastar: que el modelo de aprendizaje automático produce un error escalado menor que el método de referencia naïve estacional. De ella se derivan los enunciados siguientes, donde d<sub>i</sub> es la diferencia MASE<sub>modelo</sub> − MASE<sub>referencia</sub> en la ventana i y μ<sub>d</sub> su media.
 
-- H0: μ_d ≥ 0 (el modelo no reduce el error escalado respecto del naïve estacional).
-- H1: μ_d < 0 (el modelo reduce el error escalado respecto del naïve estacional).
+- H<sub>0</sub>: μ<sub>d</sub> ≥ 0 (el modelo no reduce el error escalado respecto del naïve estacional).
+- H<sub>1</sub>: μ<sub>d</sub> < 0 (el modelo reduce el error escalado respecto del naïve estacional).
 
 De manera complementaria, el umbral de mejora mínima del 10 % de la sección 2.5.1 permite formular una segunda prueba más exigente:
 
-- H0': MASE_modelo ≥ 0.90 × MASE_referencia (la mejora no alcanza el 10 %).
-- H1': MASE_modelo < 0.90 × MASE_referencia (la mejora supera el 10 %).
+- H<sub>0</sub>': MASE<sub>modelo</sub> ≥ 0.90 × MASE<sub>referencia</sub> (la mejora no alcanza el 10 %).
+- H<sub>1</sub>': MASE<sub>modelo</sub> < 0.90 × MASE<sub>referencia</sub> (la mejora supera el 10 %).
 
 ### 4.3.2 Prueba seleccionada y nivel de significancia
 
@@ -245,7 +245,7 @@ Las cinco ventanas de validación son las mismas para el modelo y para la refere
 
 La Tabla 24 resume las diferencias por ventana y los estadísticos obtenidos.
 
-| Ventana | MASE modelo | MASE referencia | Diferencia d_i |
+| Ventana | MASE modelo | MASE referencia | Diferencia d<sub>i</sub> |
 |---|---|---|---|
 | 1 | 0.8174 | 1.0564 | −0.2391 |
 | 2 | 0.9757 | 1.2971 | −0.3214 |
@@ -259,17 +259,17 @@ Tabla 24. Diferencias de MASE por ventana entre el modelo y la referencia naïve
 
 | Prueba | Estadístico | Valor p (unilateral) | Decisión (α = 0.05) |
 |---|---|---|---|
-| t de Student pareada (H0: μ_d ≥ 0) | t(4) = −3.487 | 0.013 | Se rechaza H0 |
-| Wilcoxon de rangos con signo (H0: μ_d ≥ 0) | W = 1 | 0.063 | No se rechaza H0 |
+| t de Student pareada (H<sub>0</sub>: μ<sub>d</sub> ≥ 0) | t(4) = −3.487 | 0.013 | Se rechaza H<sub>0</sub> |
+| Wilcoxon de rangos con signo (H<sub>0</sub>: μ<sub>d</sub> ≥ 0) | W = 1 | 0.063 | No se rechaza H<sub>0</sub> |
 | Tamaño del efecto | d de Cohen = −1.56 | — | Efecto grande |
-| t de Student pareada contra el umbral del 10 % (H0') | t(4) = −2.121 | 0.051 | No se rechaza H0' |
+| t de Student pareada contra el umbral del 10 % (H<sub>0</sub>') | t(4) = −2.121 | 0.051 | No se rechaza H<sub>0</sub>' |
 
 Tabla 25. Resultados de la comprobación de hipótesis. Fuente: Elaboración propia a partir de los registros del sistema (datos simulados).
 
 ### 4.3.4 Conclusión de la prueba
 
-Con la prueba t pareada, el valor p de 0.013 es menor que α = 0.05, por lo que se rechaza H0: existe evidencia estadística de que el modelo de aprendizaje automático reduce el error escalado respecto del naïve estacional en el conjunto evaluado, con un tamaño del efecto grande (d = −1.56). La prueba de Wilcoxon no alcanza la significancia al 5 % (p = 0.063), lo que se explica por el tamaño de la muestra: con cinco pares, el menor valor p unilateral posible es 0.031 y solo se obtiene cuando las cinco diferencias tienen el mismo signo; con cuatro de cinco, el resultado es exactamente 0.0625. La discrepancia entre ambas pruebas no refleja un desacuerdo sobre la dirección del efecto sino la escasa potencia que cinco observaciones otorgan a la prueba no paramétrica.
+Con la prueba t pareada, el valor p de 0.013 es menor que α = 0.05, por lo que se rechaza H<sub>0</sub>: existe evidencia estadística de que el modelo de aprendizaje automático reduce el error escalado respecto del naïve estacional en el conjunto evaluado, con un tamaño del efecto grande (d = −1.56). La prueba de Wilcoxon no alcanza la significancia al 5 % (p = 0.063), lo que se explica por el tamaño de la muestra: con cinco pares, el menor valor p unilateral posible es 0.031 y solo se obtiene cuando las cinco diferencias tienen el mismo signo; con cuatro de cinco, el resultado es exactamente 0.0625. La discrepancia entre ambas pruebas no refleja un desacuerdo sobre la dirección del efecto sino la escasa potencia que cinco observaciones otorgan a la prueba no paramétrica.
 
-La segunda prueba es más exigente y su resultado más matizado. La mejora media observada, 22.35 %, supera el umbral del 10 % de la sección 2.5.1; sin embargo, el valor p de 0.051 no permite rechazar H0' al 5 %, por un margen de una milésima. Es decir, los datos son compatibles con que el modelo supere el umbral, pero cinco ventanas no bastan para afirmarlo con la confianza exigida. Esta conclusión es coherente con las secciones 4.2.3 y 4.2.4: el sistema aplica el criterio del 10 % sobre el promedio de las ventanas, tal como se diseñó, pero la certeza estadística sobre ese umbral requiere más historia —y por tanto más ventanas de validación— que la disponible en doce meses.
+La segunda prueba es más exigente y su resultado más matizado. La mejora media observada, 22.35 %, supera el umbral del 10 % de la sección 2.5.1; sin embargo, el valor p de 0.051 no permite rechazar H<sub>0</sub>' al 5 %, por un margen de una milésima. Es decir, los datos son compatibles con que el modelo supere el umbral, pero cinco ventanas no bastan para afirmarlo con la confianza exigida. Esta conclusión es coherente con las secciones 4.2.3 y 4.2.4: el sistema aplica el criterio del 10 % sobre el promedio de las ventanas, tal como se diseñó, pero la certeza estadística sobre ese umbral requiere más historia —y por tanto más ventanas de validación— que la disponible en doce meses.
 
 Corresponde reiterar el alcance de estas pruebas. Los datos son simulados, de modo que lo comprobado es que el procedimiento del sistema —su protocolo de validación, sus métricas y su criterio de publicación— distingue correctamente entre un modelo que mejora la referencia y uno que no. La respuesta a la interrogante de investigación de la sección 1.4, referida a la precisión y oportunidad de la información frente a los métodos actualmente empleados en la empresa, queda condicionada a la aplicación del mismo protocolo sobre los registros reales de Zorros Revolution Biker en la fase de prueba piloto.
