@@ -1,6 +1,8 @@
 # Referencias
 
-Las referencias siguientes se citan en los Capítulos IV, V y VI y deben integrarse, en orden alfabético, a la lista de referencias del documento. Las que ya figuran en la versión anterior del documento (Chen y Guestrin, 2016; Fildes, Ma y Kolassa, 2022; Hyndman y Koehler, 2006; INE, 2023; Lundberg y Lee, 2017; Makridakis, Spiliotis y Assimakopoulos, 2022; Mejía y Aguilar, 2024; Swami, Shah y Ray, 2020; Taylor y Letham, 2018) no se repiten aquí.
+Las referencias siguientes se citan en los Capítulos I a VI y deben integrarse, en orden alfabético, a la lista de referencias del documento. Las que ya figuran en la versión anterior del documento (Chen y Guestrin, 2016; Fildes, Ma y Kolassa, 2022; Hyndman y Koehler, 2006; INE, 2023; Lundberg y Lee, 2017; Makridakis, Spiliotis y Assimakopoulos, 2022; Mejía y Aguilar, 2024; Swami, Shah y Ray, 2020; Taylor y Letham, 2018) no se repiten aquí.
+
+Aiken, L. R. (1985). Three coefficients for analyzing the reliability and validity of ratings. *Educational and Psychological Measurement, 45*(1), 131–142. https://doi.org/10.1177/0013164485451012
 
 Apache Software Foundation. (2004). *Apache License, version 2.0*. https://www.apache.org/licenses/LICENSE-2.0
 
@@ -22,6 +24,8 @@ Congreso de la República de Guatemala. (2008). *Decreto 57-2008, Ley de Acceso 
 
 Croston, J. D. (1972). Forecasting and stock control for intermittent demands. *Operational Research Quarterly, 23*(3), 289–303. https://doi.org/10.1057/jors.1972.50
 
+Cronbach, L. J. (1951). Coefficient alpha and the internal structure of tests. *Psychometrika, 16*(3), 297–334. https://doi.org/10.1007/BF02310555
+
 Davis, F. D. (1989). Perceived usefulness, perceived ease of use, and user acceptance of information technology. *MIS Quarterly, 13*(3), 319–340. https://doi.org/10.2307/249008
 
 Diebold, F. X., & Mariano, R. S. (1995). Comparing predictive accuracy. *Journal of Business & Economic Statistics, 13*(3), 253–263. https://doi.org/10.1080/07350015.1995.10524599
@@ -29,6 +33,8 @@ Diebold, F. X., & Mariano, R. S. (1995). Comparing predictive accuracy. *Journal
 Fielding, R. T. (2000). *Architectural styles and the design of network-based software architectures* [Tesis doctoral, University of California, Irvine]. https://ics.uci.edu/~fielding/pubs/dissertation/top.htm
 
 Free Software Foundation. (2007). *GNU Lesser General Public License, version 3*. https://www.gnu.org/licenses/lgpl-3.0.html
+
+Friedman, J. H. (2001). Greedy function approximation: A gradient boosting machine. *The Annals of Statistics, 29*(5), 1189–1232. https://doi.org/10.1214/aos/1013203451
 
 Hernández Sampieri, R., Fernández Collado, C., & Baptista Lucio, P. (2014). *Metodología de la investigación* (6.ª ed.). McGraw-Hill.
 
@@ -55,6 +61,8 @@ Osterwalder, A., & Pigneur, Y. (2010). *Business model generation: A handbook fo
 Parlamento Europeo y Consejo de la Unión Europea. (2016). Reglamento (UE) 2016/679, relativo a la protección de las personas físicas en lo que respecta al tratamiento de datos personales y a la libre circulación de estos datos (Reglamento General de Protección de Datos). *Diario Oficial de la Unión Europea, L 119*, 1–88.
 
 Project Management Institute. (2021). *A guide to the project management body of knowledge (PMBOK guide)* (7.ª ed.). PMI.
+
+Schwaber, K., & Sutherland, J. (2020). *The Scrum guide: The definitive guide to Scrum: The rules of the game*. Scrum.org. https://scrumguides.org/scrum-guide.html
 
 Schwalbe, K. (2019). *Information technology project management* (9.ª ed.). Cengage Learning.
 

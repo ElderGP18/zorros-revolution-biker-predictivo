@@ -4,7 +4,7 @@ El estudio de factibilidad examina si el sistema propuesto puede desarrollarse, 
 
 ## 5.1 Modelo de negocio
 
-Para situar el sistema en la lógica de valor de la empresa se utiliza el Business Model Canvas de Osterwalder y Pigneur (2010), completado a partir de la información pública descrita en la sección 1.1.1 y del problema planteado en la sección 1.3. La Tabla 26 presenta los nueve bloques y señala en cuáles interviene la solución.
+Para situar el sistema en la lógica de valor de la empresa se utiliza el Business Model Canvas de Osterwalder y Pigneur (2010), completado a partir de la información pública descrita en la sección 1.1.1 y del problema planteado en la sección 1.2. La Tabla 26 presenta los nueve bloques y señala en cuáles interviene la solución.
 
 | Bloque | Descripción para Zorros Revolution Biker | Intervención del sistema |
 |---|---|---|
@@ -20,13 +20,13 @@ Para situar el sistema en la lógica de valor de la empresa se utiliza el Busine
 
 Tabla 26. Business Model Canvas de Zorros Revolution Biker con los bloques en que interviene la solución. Fuente: Elaboración propia a partir de Osterwalder y Pigneur (2010) y de la información pública de la empresa.
 
-El sistema no modifica el negocio: incide sobre la actividad clave de reabastecimiento y, a través de ella, sobre dos rubros de la estructura de costos que el planteamiento del problema identifica como la consecuencia de decidir por experiencia. Un pedido excesivo inmoviliza capital durante un ciclo de importación de dos meses; un pedido escaso produce faltantes justamente cuando la demanda es mayor. El valor de la solución reside en acercar ambas decisiones a la demanda esperada, no en sustituir el criterio comercial de la gerencia, como se establece en la sección 1.3.
+El sistema no modifica el negocio: incide sobre la actividad clave de reabastecimiento y, a través de ella, sobre dos rubros de la estructura de costos que el planteamiento del problema identifica como la consecuencia de decidir por experiencia. Un pedido excesivo inmoviliza capital durante un ciclo de importación de dos meses; un pedido escaso produce faltantes justamente cuando la demanda es mayor. El valor de la solución reside en acercar ambas decisiones a la demanda esperada, no en sustituir el criterio comercial de la gerencia, como se establece en la sección 1.2.
 
 ## 5.2 Transformación digital
 
-**Estado de partida.** Según el planteamiento de la sección 1.3, la planificación de compras de la empresa se apoya en la experiencia del personal y en la revisión manual de registros. No se dispone, en esta fase, de una descripción verificada del sistema transaccional que la empresa utiliza; la sección 1.1.1 deja explícito que ese antecedente debe completarse mediante entrevista. Por tanto, el estado de partida se caracteriza con lo que sí se conoce: las decisiones de reabastecimiento no cuentan con un pronóstico sistemático ni con una medición del error de las estimaciones.
+**Estado de partida.** Según el planteamiento de la sección 1.2, la planificación de compras de la empresa se apoya en la experiencia del personal y en la revisión manual de registros. No se dispone, en esta fase, de una descripción verificada del sistema transaccional que la empresa utiliza; la sección 1.1.1 deja explícito que ese antecedente debe completarse mediante entrevista. Por tanto, el estado de partida se caracteriza con lo que sí se conoce: las decisiones de reabastecimiento no cuentan con un pronóstico sistemático ni con una medición del error de las estimaciones.
 
-**Estado deseado.** Una operación en la que las ventas se registran de forma estructurada, cada producto tiene un perfil de demanda conocido, el pronóstico se genera y evalúa con un protocolo reproducible, y las alertas de reabastecimiento consideran el tiempo de importación desde China. La sección 2.8.1 lo formula como conectar la predicción con la gestión de ventas sin perder trazabilidad.
+**Estado deseado.** Una operación en la que las ventas se registran de forma estructurada, cada producto tiene un perfil de demanda conocido, el pronóstico se genera y evalúa con un protocolo reproducible, y las alertas de reabastecimiento consideran el tiempo de importación desde China. La sección 2.1.1 lo formula como conectar la predicción con la gestión de ventas sin perder trazabilidad.
 
 **Capacidades que habilita el MVP.** El prototipo desplegado aporta cuatro capacidades que no existían: registro transaccional con descuento automático de inventario; perfilamiento de cada serie de demanda; comparación de modelos de pronóstico con criterio de publicación; y alertas de reabastecimiento que anticipan los eventos de temporada dentro de la ventana de envío. Todas son accesibles desde cualquier navegador con control de acceso por roles.
 
@@ -64,7 +64,7 @@ El requerimiento no funcional RNF-04 establece excluir los datos personales inne
 
 Tabla 28. Inventario de datos personales tratados por el sistema y medidas de protección. Fuente: Elaboración propia.
 
-El sistema no registra datos de clientes: el pronóstico se construye sobre transacciones agregadas, en línea con la sección 1.6.3. Las cuentas de demostración creadas durante el desarrollo generan contraseñas aleatorias que solo se muestran una vez y no se almacenan en el código fuente ni en la configuración.
+El sistema no registra datos de clientes: el pronóstico se construye sobre transacciones agregadas, en línea con la sección 1.5.3. Las cuentas de demostración creadas durante el desarrollo generan contraseñas aleatorias que solo se muestran una vez y no se almacenan en el código fuente ni en la configuración.
 
 ### 5.3.3 Licenciamiento del software
 
@@ -88,7 +88,7 @@ Ningún componente tiene licencia comercial ni de copyleft fuerte que obligue a 
 
 ### 5.3.4 Confidencialidad
 
-La sección 3.4 prevé que la recolección de datos se realice con autorización de la empresa y en un entorno restringido. Se propone formalizar, antes de la carga de registros reales, un acuerdo de confidencialidad que cubra la información comercial de Zorros Revolution Biker, el acceso al servidor y las condiciones de uso del software, en concordancia con el Decreto 33-98.
+La sección 3.3.6 prevé que la recolección de datos se realice con autorización de la empresa y en un entorno restringido. Se propone formalizar, antes de la carga de registros reales, un acuerdo de confidencialidad que cubra la información comercial de Zorros Revolution Biker, el acceso al servidor y las condiciones de uso del software, en concordancia con el Decreto 33-98.
 
 ## 5.4 Factibilidad ambiental
 
@@ -142,13 +142,13 @@ La Tabla 31 desglosa los costos del proyecto en su primer año y en los dos sigu
 
 | Concepto | Supuesto | Año 1 (Q) | Años 2 y 3 (Q por año) |
 |---|---|---|---|
-| Desarrollo (costo sombra) | 4 integrantes × 10 h/semana × 16 semanas = 640 h, a Q 60/h | 38,400 | 0 |
+| Desarrollo (costo sombra) | 3 integrantes × 10 h/semana × 16 semanas = 480 h, a Q 60/h | 28,800 | 0 |
 | Servidor privado virtual | Q 80 mensuales | 960 | 960 |
 | Dominio y certificado TLS | DuckDNS y Let's Encrypt, sin costo | 0 | 0 |
 | Licencias de software | Componentes de código abierto (Tabla 29) | 0 | 0 |
 | Capacitación | 8 horas del equipo a Q 60/h | 480 | 0 |
 | Mantenimiento y soporte | 4 h mensuales a Q 60/h | 2,880 | 2,880 |
-| **Total con costo sombra** | | **42,720** | **3,840** |
+| **Total con costo sombra** | | **33,120** | **3,840** |
 | **Desembolso efectivo** | | **4,320** | **3,840** |
 
 Tabla 31. Costos del proyecto. Fuente: Elaboración propia; las tarifas y horas son supuestos declarados.
@@ -172,17 +172,17 @@ Con estos parámetros, el beneficio anual se calcula como: ventas anuales × 14.
 
 La Tabla 33 presenta el beneficio anual, el retorno de la inversión (ROI) y la relación beneficio-costo (B/C) para cada combinación de supuestos, en dos horizontes: el primer año considerando solo el desembolso efectivo, y tres años considerando el costo total incluido el costo sombra del desarrollo. Las fórmulas son las estándar de evaluación de proyectos de tecnología (Schwalbe, 2019): ROI = (beneficios − costos) / costos × 100, y B/C = beneficios / costos.
 
-| Ventas anuales (Q) | Fracción recuperada | Beneficio anual (Q) | ROI año 1, desembolso Q 4,320 | ROI a 3 años, costo total Q 50,400 | B/C a 3 años |
+| Ventas anuales (Q) | Fracción recuperada | Beneficio anual (Q) | ROI año 1, desembolso Q 4,320 | ROI a 3 años, costo total Q 40,800 | B/C a 3 años |
 |---|---|---|---|---|---|
-| 600,000 | 15 % | 4,568 | 6 % | −73 % | 0.27 |
-| 600,000 | 30 % | 9,135 | 111 % | −46 % | 0.54 |
-| 600,000 | 50 % | 15,225 | 252 % | −9 % | 0.91 |
-| 1,200,000 | 15 % | 9,135 | 111 % | −46 % | 0.54 |
-| 1,200,000 | 30 % | 18,270 | 323 % | 9 % | 1.09 |
-| 1,200,000 | 50 % | 30,450 | 605 % | 81 % | 1.81 |
-| 2,400,000 | 15 % | 18,270 | 323 % | 9 % | 1.09 |
-| 2,400,000 | 30 % | 36,540 | 746 % | 117 % | 2.17 |
-| 2,400,000 | 50 % | 60,900 | 1,310 % | 263 % | 3.63 |
+| 600,000 | 15 % | 4,568 | 6 % | −66 % | 0.34 |
+| 600,000 | 30 % | 9,135 | 111 % | −33 % | 0.67 |
+| 600,000 | 50 % | 15,225 | 252 % | 12 % | 1.12 |
+| 1,200,000 | 15 % | 9,135 | 111 % | −33 % | 0.67 |
+| 1,200,000 | 30 % | 18,270 | 323 % | 34 % | 1.34 |
+| 1,200,000 | 50 % | 30,450 | 605 % | 124 % | 2.24 |
+| 2,400,000 | 15 % | 18,270 | 323 % | 34 % | 1.34 |
+| 2,400,000 | 30 % | 36,540 | 746 % | 169 % | 2.69 |
+| 2,400,000 | 50 % | 60,900 | 1,310 % | 348 % | 4.48 |
 
 Tabla 33. Escenarios de retorno de la inversión según los supuestos de la Tabla 32. Fuente: Elaboración propia.
 
@@ -190,6 +190,6 @@ Tabla 33. Escenarios de retorno de la inversión según los supuestos de la Tabl
 
 La lectura de la Tabla 33 distingue dos situaciones. Considerando únicamente el desembolso efectivo —servidor, capacitación y mantenimiento—, el proyecto se recupera dentro del primer año en todos los escenarios salvo el más pesimista, y en el escenario base con ventas de Q 1,200,000 el periodo de recuperación es de aproximadamente tres meses (Q 4,320 / Q 18,270 × 12). Esta es la situación que enfrenta la empresa si adopta el sistema desarrollado en el marco del trabajo de graduación.
 
-Considerando el costo total, es decir, valorando el desarrollo como si se hubiera contratado, el resultado depende de la escala del negocio. Con el escenario base de recuperación (30 %), el proyecto alcanza el punto de equilibrio a tres años cuando las ventas anuales superan aproximadamente Q 1,105,000, que es el nivel en que 3 × 0.0152 × ventas iguala Q 50,400. Por debajo de esa escala, el desarrollo a tarifa de mercado no se justificaría solo por las ventas recuperadas; por encima, la relación beneficio-costo crece con la escala y alcanza 2.17 con ventas de Q 2,400,000.
+Considerando el costo total, es decir, valorando el desarrollo como si se hubiera contratado, el resultado depende de la escala del negocio. Con el escenario base de recuperación (30 %), el proyecto alcanza el punto de equilibrio a tres años cuando las ventas anuales superan aproximadamente Q 895,000, que es el nivel en que 3 × 0.0152 × ventas iguala Q 40,800. Por debajo de esa escala, el desarrollo a tarifa de mercado no se justificaría solo por las ventas recuperadas; por encima, la relación beneficio-costo crece con la escala y alcanza 2.69 con ventas de Q 2,400,000.
 
 Tres precisiones son necesarias para no sobreinterpretar el análisis. Primero, el único parámetro con respaldo cuantitativo, la proporción de demanda no atendida, proviene de la simulación y debe medirse en la operación real antes de tomar cualquier decisión de inversión. Segundo, el beneficio por menor capital inmovilizado no se incluyó, por lo que los resultados son conservadores. Tercero, la conclusión que sí es robusta a los supuestos es que el costo recurrente del sistema —menos de Q 4,000 anuales— es una fracción pequeña de cualquier escenario de beneficio razonable, de modo que la decisión económica relevante para la empresa no es si operar el sistema, sino si el volumen de faltantes justifica el esfuerzo de registro que exige. Con esa salvedad, el proyecto se considera económicamente factible.
