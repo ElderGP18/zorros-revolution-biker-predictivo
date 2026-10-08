@@ -1,6 +1,6 @@
 # Capítulo VI – Desarrollo de la Solución Tecnológica
 
-Este capítulo documenta la construcción de la solución: el tipo de sistema, sus requerimientos, su diseño, la forma en que se implementó y cómo se probó. Integra y actualiza la documentación técnica preliminar de la sección 3.5, elaborada antes de construir el sistema. Donde el diseño final difiere del preliminar se indica la diferencia y su justificación, de modo que la documentación describa el sistema que existe y no el que se propuso.
+Este capítulo documenta la construcción de la solución: el tipo de sistema, sus requerimientos, su diseño, la forma en que se implementó y cómo se probó. Incluye la documentación técnica preliminar, elaborada antes de construir el sistema —el backlog inicial (sección 6.2.2), el diseño arquitectónico preliminar (sección 6.3.1) y los prototipos de baja fidelidad (sección 6.3.6)—, y la actualiza con el diseño final. Donde el diseño final difiere del preliminar se indica la diferencia y su justificación, de modo que la documentación describa el sistema que existe y no el que se propuso.
 
 ## 6.1 Tipo de sistema propuesto
 
@@ -15,15 +15,17 @@ Siguiendo la taxonomía de Laudon y Laudon (2020), la solución combina cuatro t
 
 Tabla 34. Clasificación del sistema según su tipo. Fuente: Elaboración propia a partir de Laudon y Laudon (2020).
 
-La combinación TPS-DSS explica la arquitectura en capas de la sección 6.3.1: la capa transaccional alimenta con datos al motor de pronóstico, y este devuelve información prospectiva a la misma interfaz. La calificación de sistema inteligente se sostiene en que el componente de aprendizaje automático se evalúa contra líneas base y solo se publica si las supera (sección 6.3.4), en lugar de aplicarse de forma incondicional.
+La combinación TPS-DSS explica la arquitectura en capas de la sección 6.3.2: la capa transaccional alimenta con datos al motor de pronóstico, y este devuelve información prospectiva a la misma interfaz. La calificación de sistema inteligente se sostiene en que el componente de aprendizaje automático se evalúa contra líneas base y solo se publica si las supera (sección 6.3.5), en lugar de aplicarse de forma incondicional.
 
 ## 6.2 Análisis de requerimientos
 
 ### 6.2.1 Fuentes y método
 
-Los requerimientos provienen de tres fuentes: el planteamiento del problema y los objetivos del Capítulo I; el backlog preliminar de la sección 3.5, elaborado con la escala MoSCoW; y la auditoría de alineación entre el documento y el sistema realizada al inicio de la fase, que contrastó cada requerimiento con el código. Se redactaron de forma numerada y verificable, conforme a la norma ISO/IEC/IEEE 29148 (International Organization for Standardization, 2018), y los no funcionales se asociaron a las características de calidad de la norma ISO/IEC 25010 (International Organization for Standardization, 2011). A cada requerimiento se le añade su estado en el MVP, lo que permite trazarlo hacia las pruebas de la sección 6.5.
+Los requerimientos provienen de tres fuentes: el planteamiento del problema y los objetivos del Capítulo I; el backlog preliminar de la sección 6.2.2, elaborado con la escala MoSCoW; y la auditoría de alineación entre el documento y el sistema realizada al inicio de la fase, que contrastó cada requerimiento con el código. Se redactaron de forma numerada y verificable, conforme a la norma ISO/IEC/IEEE 29148 (International Organization for Standardization, 2018), y los no funcionales se asociaron a las características de calidad de la norma ISO/IEC 25010 (International Organization for Standardization, 2011). A cada requerimiento se le añade su estado en el MVP, lo que permite trazarlo hacia las pruebas de la sección 6.5.
 
-### 6.2.2 Requerimientos funcionales
+<!-- ancla: requerimientos -->
+
+### 6.2.3 Requerimientos funcionales
 
 | ID | Requerimiento | Prioridad | Estado en el MVP |
 |---|---|---|---|
@@ -53,7 +55,7 @@ Tabla 35. Requerimientos funcionales con su estado en el MVP. Fuente: Elaboraci�
 
 Los requerimientos RF-19 a RF-21 no figuraban en el backlog preliminar y surgieron durante la construcción: el primero, de la necesidad de eliminar toda credencial del código y la configuración; los otros dos, de que la empresa no dispone de un sistema transaccional del cual importar, lo que obligó a que el MVP capture las ventas por sí mismo.
 
-### 6.2.3 Requerimientos no funcionales
+### 6.2.4 Requerimientos no funcionales
 
 | ID | Característica (ISO/IEC 25010) | Requisito | Criterio de aceptación | Estado en el MVP |
 |---|---|---|---|---|
@@ -72,7 +74,7 @@ Los requerimientos RF-19 a RF-21 no figuraban en el backlog preliminar y surgier
 
 Tabla 36. Requerimientos no funcionales, característica de calidad asociada y estado en el MVP. Fuente: Elaboración propia a partir de ISO/IEC 25010.
 
-### 6.2.4 Casos de uso
+### 6.2.5 Casos de uso
 
 Dos actores humanos interactúan con el sistema —el cajero y el administrador— y un tercero, el administrador técnico, opera el servidor. La Tabla 37 lista los casos de uso y la Figura 11 los representa.
 
@@ -104,11 +106,13 @@ flowchart LR
 
 Figura 11. Diagrama de casos de uso del sistema. Fuente: Elaboración propia.
 
-El flujo principal de CU-02, que materializa la sección 2.5 del marco teórico, es el siguiente: el administrador solicita la recalibración; el sistema construye la serie diaria y sus características; entrena y evalúa los siete candidatos en cinco ventanas de origen móvil; calcula las métricas; aplica el criterio de aceptación al modelo de aprendizaje automático frente al naïve estacional; si lo supera, reentrena con todo el historial, guarda el artefacto versionado y lo publica; si no, conserva el modelo vigente. En ambos casos registra la ejecución con sus métricas y la decisión. El flujo alternativo —ningún candidato supera la referencia— es exactamente el previsto en la Tabla 8 del diseño preliminar.
+El flujo principal de CU-02, que materializa la sección 2.2.5 del marco teórico, es el siguiente: el administrador solicita la recalibración; el sistema construye la serie diaria y sus características; entrena y evalúa los siete candidatos en cinco ventanas de origen móvil; calcula las métricas; aplica el criterio de aceptación al modelo de aprendizaje automático frente al naïve estacional; si lo supera, reentrena con todo el historial, guarda el artefacto versionado y lo publica; si no, conserva el modelo vigente. En ambos casos registra la ejecución con sus métricas y la decisión. El flujo alternativo —ningún candidato supera la referencia— es exactamente el previsto en la Tabla 8 del diseño preliminar.
 
 ## 6.3 Diseño de la solución
 
-### 6.3.1 Arquitectura
+<!-- ancla: diseno -->
+
+### 6.3.2 Arquitectura
 
 El sistema adopta una arquitectura cliente-servidor en capas (Sommerville, 2016), desplegada en contenedores. La Figura 12 la representa y la Tabla 38 describe cada componente, señalando las diferencias respecto del diseño preliminar (Tabla 10).
 
@@ -150,7 +154,7 @@ Tabla 38. Componentes de la arquitectura y diferencias respecto del diseño prel
 
 El servidor aloja otros proyectos, por lo que Nginx no forma parte del stack de contenedores del sistema: el servicio de la API se publica únicamente en la interfaz local del servidor y el Nginx existente lo expone al exterior. Esta decisión evita conflictos de puertos con los demás servicios y es la razón por la que el despliegue documenta reglas estrictas para la configuración compartida.
 
-### 6.3.2 Modelo de datos
+### 6.3.3 Modelo de datos
 
 La base de datos sigue el diseño preliminar de separar la cabecera de la venta de su detalle, de modo que un ticket admita varios productos (Chen, 1976). La Figura 13 muestra el modelo entidad-relación implementado y la Tabla 39 el estado de cada entidad respecto de la Tabla 11 preliminar.
 
@@ -195,7 +199,7 @@ Tabla 39. Estado de las entidades del modelo de datos respecto del diseño preli
 
 El esquema está normalizado hasta la tercera forma normal: las cantidades y precios de cada producto vendido residen en el detalle, el catálogo no repite datos de venta, y los movimientos de existencia son la única fuente de la cual se deriva el inventario. El esquema se crea automáticamente al arrancar, en un proceso previo al inicio de los servidores web para evitar que varios procesos intenten crearlo a la vez; la incorporación de migraciones versionadas es una mejora pendiente.
 
-### 6.3.3 Diseño de la API
+### 6.3.4 Diseño de la API
 
 La API sigue el estilo REST (Fielding, 2000): recursos identificados por rutas, operaciones expresadas con los métodos HTTP y autenticación sin estado mediante tokens JWT. La Tabla 40 presenta los endpoints implementados y el rol que los autoriza; el control se verifica en el servidor en cada petición, no en la interfaz.
 
@@ -225,22 +229,22 @@ Tabla 40. Endpoints de la API implementados. Fuente: Elaboración propia.
 
 Respecto de la Tabla 12 preliminar, las rutas no llevan aún el prefijo de versión /api/v1 y faltan los recursos de cargas de datos, calidad de datos, métricas de pronóstico y exportación, todos ellos dependientes del importador. Los recursos de perfilamiento y de cambio de contraseña no estaban previstos y se añadieron.
 
-### 6.3.4 Diseño del motor de pronóstico
+### 6.3.5 Diseño del motor de pronóstico
 
-El motor materializa las secciones 2.2 a 2.6 del marco teórico. La Tabla 41 resume sus componentes y la Figura 14 el flujo de una recalibración.
+El motor materializa las secciones 2.2.2 a 2.2.6 del marco teórico. La Tabla 41 resume sus componentes y la Figura 14 el flujo de una recalibración.
 
 | Componente | Diseño | Sección del marco teórico |
 |---|---|---|
-| Variable objetivo | Total diario de ventas en quetzales (agregado del negocio) | 2.1 y 3.1.1; el nivel por producto es la siguiente iteración por la intermitencia del catálogo |
-| Características | Día de la semana, fin de semana, mes (codificado con seno y coseno), día del mes, indicadores de diciembre, Bono 14 y Caravana, rezagos de 1, 7, 14 y 30 días, medias móviles de 7 y 30 días calculadas solo con fechas anteriores | 2.4, Tabla 1 |
-| Control de fuga | Todos los rezagos y ventanas se desplazan un periodo, de modo que ninguna característica del día t utiliza información de t o posterior | 2.2 y 2.3 (Bergmeir y Benítez, 2012) |
-| Líneas base | Naïve, naïve estacional de periodo 7, media móvil, suavizamiento exponencial simple con ajuste del parámetro, Holt-Winters aditivo y ARIMA(1,1,1) | 2.2.2 (Hyndman y Athanasopoulos, 2021) |
-| Modelo candidato | Árboles potenciados por gradiente de scikit-learn, con hiperparámetros fijos y registrados | 2.3.1 |
-| Protocolo de evaluación | Origen móvil con cinco ventanas de 30 días; en cada ventana, todos los candidatos se reentrenan con el pasado disponible y predicen el horizonte completo de forma recursiva | 2.5 (Tashman, 2000) |
-| Métricas | MASE escalado con el error in-sample del naïve estacional (Hyndman y Koehler, 2006), WAPE, MAE, RMSE, sMAPE y sesgo; las indefinidas se reportan como tales y no como cero | 2.5, Tabla 2 |
-| Criterio de publicación | Mejora de MASE de al menos 10 % sobre el naïve estacional, sesgo relativo no mayor de 20 % y victoria en más de la mitad de las ventanas; umbrales configurables sin tocar código | 2.5.1 |
-| Versionado | Cada ejecución registra algoritmo, hiperparámetros, protocolo, métricas de todos los candidatos y decisión; el artefacto se guarda con nombre versionado y escritura atómica | 2.7 |
-| Perfilamiento previo | Proporción de ceros, ADI y CV² por producto, con clasificación de Syntetos, Boylan y Croston (2005) | 2.2.3 |
+| Variable objetivo | Total diario de ventas en quetzales (agregado del negocio) | 2.2.1 y 3.1.1; el nivel por producto es la siguiente iteración por la intermitencia del catálogo |
+| Características | Día de la semana, fin de semana, mes (codificado con seno y coseno), día del mes, indicadores de diciembre, Bono 14 y Caravana, rezagos de 1, 7, 14 y 30 días, medias móviles de 7 y 30 días calculadas solo con fechas anteriores | 2.2.4, Tabla 1 |
+| Control de fuga | Todos los rezagos y ventanas se desplazan un periodo, de modo que ninguna característica del día t utiliza información de t o posterior | 2.2.2 y 2.2.3 (Bergmeir y Benítez, 2012) |
+| Líneas base | Naïve, naïve estacional de periodo 7, media móvil, suavizamiento exponencial simple con ajuste del parámetro, Holt-Winters aditivo y ARIMA(1,1,1) | 2.2.2.2 (Hyndman y Athanasopoulos, 2021) |
+| Modelo candidato | Árboles potenciados por gradiente de scikit-learn, con hiperparámetros fijos y registrados | 2.2.3.1 |
+| Protocolo de evaluación | Origen móvil con cinco ventanas de 30 días; en cada ventana, todos los candidatos se reentrenan con el pasado disponible y predicen el horizonte completo de forma recursiva | 2.2.5 (Tashman, 2000) |
+| Métricas | MASE escalado con el error in-sample del naïve estacional (Hyndman y Koehler, 2006), WAPE, MAE, RMSE, sMAPE y sesgo; las indefinidas se reportan como tales y no como cero | 2.2.5, Tabla 2 |
+| Criterio de publicación | Mejora de MASE de al menos 10 % sobre el naïve estacional, sesgo relativo no mayor de 20 % y victoria en más de la mitad de las ventanas; umbrales configurables sin tocar código | 2.2.5.1 |
+| Versionado | Cada ejecución registra algoritmo, hiperparámetros, protocolo, métricas de todos los candidatos y decisión; el artefacto se guarda con nombre versionado y escritura atómica | 2.2.7 |
+| Perfilamiento previo | Proporción de ceros, ADI y CV² por producto, con clasificación de Syntetos, Boylan y Croston (2005) | 2.2.2.3 |
 
 Tabla 41. Componentes del motor de pronóstico y su fundamento teórico. Fuente: Elaboración propia.
 
@@ -263,13 +267,15 @@ Figura 14. Flujo de una recalibración del modelo. Fuente: Elaboración propia.
 
 Dos decisiones de diseño merecen justificación explícita. La primera es evaluar con el horizonte de 30 días, que es el que consume el tablero, en lugar de uno más corto: evaluar a siete días y publicar para treinta mediría un problema distinto del que el sistema resuelve. La segunda es reentrenar cada candidato en cada ventana en lugar de entrenar una vez y desplazar el conjunto de prueba; es más costoso, pero es lo que hace que la validación reproduzca el uso real, en el que el modelo se recalibra a medida que llegan datos (Tashman, 2000).
 
-### 6.3.5 Diseño de la interfaz
+<!-- ancla: prototipado -->
 
-La interfaz consta de seis módulos, cada uno en una pantalla: acceso, centro de control, ventas, productos e inventario, pronóstico y usuarios. Los wireframes de la sección 3.5 (Figuras 4 a 6) guiaron la estructura: navegación lateral con la opción activa resaltada, indicadores en tarjetas, gráfica que distingue histórico de pronóstico por color y por trazo, y panel lateral de señales y recomendaciones. Respecto de los wireframes, los módulos de importación y de configuración no se construyeron, y el módulo de usuarios, que el preliminar dejaba fuera, se incorporó por el requerimiento RF-19.
+### 6.3.7 Diseño de la interfaz
 
-El diseño atiende los criterios del RNF-06: enlace para saltar al contenido, etiquetas asociadas a todos los campos, anuncio de los mensajes de estado a los lectores de pantalla, cierre de ventanas emergentes con la tecla Escape, tablas con encabezados declarados y contraste de la paleta revisado, con ajustes pendientes en los mensajes de error. La evaluación formal contra WCAG 2.2 (World Wide Web Consortium, 2023) queda pendiente. Las pantallas se documentan en el manual de usuario, versión 0.2, y se muestran como evidencia en la sección 6.4.5.
+La interfaz consta de seis módulos, cada uno en una pantalla: acceso, centro de control, ventas, productos e inventario, pronóstico y usuarios. Los wireframes de la sección 6.3.6 (Figuras 4 a 6) guiaron la estructura: navegación lateral con la opción activa resaltada, indicadores en tarjetas, gráfica que distingue histórico de pronóstico por color y por trazo, y panel lateral de señales y recomendaciones. Respecto de los wireframes, los módulos de importación y de configuración no se construyeron, y el módulo de usuarios, que el preliminar dejaba fuera, se incorporó por el requerimiento RF-19.
 
-### 6.3.6 Diseño de seguridad
+El diseño atiende los criterios del RNF-06: enlace para saltar al contenido, etiquetas asociadas a todos los campos, anuncio de los mensajes de estado a los lectores de pantalla, cierre de ventanas emergentes con la tecla Escape, tablas con encabezados declarados y contraste de la paleta revisado, con ajustes pendientes en los mensajes de error. La evaluación formal contra WCAG 2.2 (World Wide Web Consortium, 2023) queda pendiente. Las pantallas se documentan en el manual de usuario, versión 0.2, y se muestran como evidencia en la sección 6.4.4.
+
+### 6.3.8 Diseño de seguridad
 
 En cumplimiento del RNF-03, la autenticación emite tokens JWT firmados con una clave que solo existe en la configuración del servidor; en el despliegue en contenedores el sistema se niega a arrancar si no se define. Las contraseñas se almacenan con bcrypt, se exige una longitud mínima de diez caracteres con letras y números, y cambiar la propia contraseña requiere conocer la actual. La autorización se verifica en el servidor en cada endpoint; la ocultación de opciones en la interfaz es solo una comodidad. Toda salida de datos del servidor se escapa antes de insertarse en la página, lo que cierra la vía de inyección de código en el navegador. El sistema impide que el último administrador activo pierda su rol o se desactive, y ofrece una vía de recuperación por línea de comandos en el servidor. Las cuentas de demostración se crean con contraseñas aleatorias que se muestran una única vez.
 

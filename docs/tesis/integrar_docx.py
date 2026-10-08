@@ -1,20 +1,23 @@
-"""Integra los Capitulos IV, V y VI al Word de la tesis usando sus propios estilos.
+"""Construye el Word de la tesis a partir del original de agosto y de las fuentes en Markdown.
 
-- Inserta los capitulos antes del titulo "Referencias".
+- Reestructura la portada y los Capítulos I a III según la guía UMG
+  (reestructurar_docx.py, con el contenido de revision-capitulos-1-a-3.md).
+- Inserta los Capítulos IV, V y VI antes del título "Referencias" y traslada al
+  Capítulo VI las partes del Entregable de Ingeniería.
 - Los pies de tabla y figura se crean como campos SEQ, igual que los existentes,
-  para que Word los numere y los incluya en los indices al actualizar campos.
-- Fusiona las referencias nuevas con las existentes en orden alfabetico,
+  para que Word los numere y los incluya en los índices al actualizar campos; al
+  final se pasan a formato APA y se renumeran (pies_y_referencias.py).
+- Fusiona las referencias nuevas con las existentes en orden alfabético,
   conservando intactas las originales.
-- Actualiza los dos parrafos de la Introduccion que describen el alcance.
+- Actualiza los dos párrafos de la Introducción que describen el alcance.
 
-Uso (desde backend/, con el venv):
+Uso (desde backend/, con el venv), y después actualizar_campos_word.py:
     python ../docs/tesis/integrar_docx.py
 """
 from __future__ import annotations
 
 import copy
 import re
-import shutil
 import sys
 import unicodedata
 from pathlib import Path
@@ -25,22 +28,22 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, Twips
 
+import pies_y_referencias
+import reestructurar_docx
+
 RAIZ = Path(__file__).resolve().parents[2]
 DOCS = RAIZ / "docs"
 TESIS = DOCS / "tesis"
+# Gráficas, diagramas Mermaid ya renderizados y capturas del sistema.
 FIGURAS = TESIS / "figuras"
-SCRATCH = Path(r"C:/Users/gape2/AppData/Local/Temp/claude/c--Users-gape2-Documents-zorros-revolution-biker-predictivo/b6497813-e1d2-44a1-9781-5aae7c1d575f/scratchpad")
-MERMAID = SCRATCH / "mermaid"
-CAPTURAS = SCRATCH / "capturas"
 
-ACTUAL = DOCS / "Trabajo de Graduacion.docx"
 SALIDA = DOCS / "Trabajo de Graduacion - integrado.docx"
-RESPALDO = DOCS / "respaldo"
-# Siempre se parte del original de agosto: el Word "actual" ya contiene los
-# capítulos tras la primera corrida y volver a leerlo los duplicaría.
-ORIGINAL = RESPALDO / "Trabajo de Graduacion - v1 agosto 2026.docx"
+# Siempre se parte del original de agosto: el Word final ya contiene los
+# capítulos y volver a leerlo los duplicaría.
+ORIGINAL = DOCS / "respaldo" / "Trabajo de Graduacion - v1 agosto 2026.docx"
 
 CAPITULOS = ["capitulo-4-resultados.md", "capitulo-5-factibilidad.md", "capitulo-6-desarrollo.md"]
+REVISION_CAPITULOS_1_A_3 = "revision-capitulos-1-a-3.md"
 ANCHO_TABLA = 9360  # twips, igual que las tablas existentes (6.5")
 ANCHO_IMAGEN = Inches(6.5)
 ALTO_MAX_IMAGEN = Inches(7.2)
@@ -57,6 +60,8 @@ MAX_DEMANDA = 70
 RE_INLINE = re.compile(r"(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|<sub>[^<]+</sub>)")
 RE_IMG = re.compile(r"^!\[(.*?)\]\((.*?)\)$")
 RE_CAPTION = re.compile(r"^(Tabla|Figura) (\d+)\.(.*)$")
+# Marca en el Markdown el lugar al que se traslada contenido del Word original.
+RE_ANCLA = re.compile(r"^<!-- ancla: ([\w-]+) -->$")
 
 # Figuras 11-14 son los diagramas Mermaid (en orden de aparicion) y 15-20 las capturas.
 PNG_MERMAID = ["fig11_casos_de_uso.png", "fig12_arquitectura.png", "fig13_mer.png", "fig14_recalibracion.png"]
@@ -272,7 +277,10 @@ def parrafo_lista(ins, texto, marca):
 # ---------------------------------------------------------------------------
 
 def insertar_capitulo(ins, ruta_md: Path, estado: dict, heading1_rompe_pagina: bool):
-    lineas = ruta_md.read_text(encoding="utf-8").splitlines()
+    insertar_markdown(ins, ruta_md.read_text(encoding="utf-8").splitlines(), estado, heading1_rompe_pagina)
+
+
+def insertar_markdown(ins, lineas: list, estado: dict, heading1_rompe_pagina: bool = True):
     i, tabla, codigo, en_codigo, lenguaje = 0, [], [], False, ""
     while i < len(lineas):
         ln = lineas[i]
@@ -280,7 +288,7 @@ def insertar_capitulo(ins, ruta_md: Path, estado: dict, heading1_rompe_pagina: b
             if ln.startswith("```"):
                 if lenguaje == "mermaid":
                     idx = estado["mermaid"]; estado["mermaid"] += 1
-                    png = MERMAID / PNG_MERMAID[idx] if idx < len(PNG_MERMAID) else None
+                    png = FIGURAS / PNG_MERMAID[idx] if idx < len(PNG_MERMAID) else None
                     if png and png.exists():
                         imagen(ins, png)
                     else:
@@ -301,7 +309,11 @@ def insertar_capitulo(ins, ruta_md: Path, estado: dict, heading1_rompe_pagina: b
             if not RE_CAPTION.match(_siguiente_no_vacia(lineas, i)):
                 ins.parrafo("Normal")
 
-        if ln.startswith("# "):
+        if ln.startswith("<!--"):
+            # Los comentarios no se publican; un ancla deja un párrafo marcador.
+            if RE_ANCLA.match(ln):
+                estado["anclas"][RE_ANCLA.match(ln).group(1)] = ins.parrafo("Normal")
+        elif ln.startswith("# "):
             if not heading1_rompe_pagina:
                 salto_de_pagina(ins)
             ins.parrafo("Heading 1").add_run(ln[2:].strip())
@@ -309,6 +321,8 @@ def insertar_capitulo(ins, ruta_md: Path, estado: dict, heading1_rompe_pagina: b
             ins.parrafo("Heading 2").add_run(ln[3:].strip())
         elif ln.startswith("### "):
             ins.parrafo("Heading 3").add_run(ln[4:].strip())
+        elif ln.startswith("#### "):
+            ins.parrafo("Heading 4").add_run(ln[5:].strip())
         elif RE_IMG.match(ln):
             _, src = RE_IMG.match(ln).groups()
             ruta = FIGURAS / src
@@ -320,7 +334,7 @@ def insertar_capitulo(ins, ruta_md: Path, estado: dict, heading1_rompe_pagina: b
             etiqueta, numero, resto = RE_CAPTION.match(ln).groups()
             numero = int(numero)
             if "[Insertar captura]" in resto:
-                png = CAPTURAS / PNG_CAPTURAS.get(numero, "")
+                png = FIGURAS / PNG_CAPTURAS.get(numero, "")
                 if png.exists():
                     imagen(ins, png)
                 else:
@@ -383,35 +397,6 @@ def fusionar_referencias(doc, heading_ref):
     return insertadas, total
 
 
-def integrar_entregable(doc):
-    """El Entregable de Ingeniería era una sección independiente con apartados
-    4.x que se confundían con el Capítulo IV. Pasa a ser la sección 3.5 del
-    Capítulo III: su título baja a Heading 2 y sus apartados a Heading 3 y 4,
-    renumerados 3.5.x, sin tocar el contenido ni el orden de tablas y figuras."""
-    dentro, cambiados = False, 0
-    for p in doc.paragraphs:
-        if p.style.name == "Heading 1":
-            dentro = p.text.startswith("Entregable de Ingeniería")
-            if dentro:
-                p.style = doc.styles["Heading 2"]
-                p.paragraph_format.page_break_before = None
-                p.paragraph_format.space_after = None
-                p.runs[0].text = "3.5 " + p.runs[0].text
-                cambiados += 1
-            continue
-        if not (dentro and p.runs and p.runs[0].text.startswith("4.")):
-            continue
-        if p.style.name == "Heading 2":
-            p.style = doc.styles["Heading 3"]
-        elif p.style.name == "Heading 3":
-            p.style = doc.styles["Heading 4"]
-        else:
-            continue
-        p.runs[0].text = "3.5." + p.runs[0].text[2:]
-        cambiados += 1
-    return cambiados
-
-
 def ajustar_estilos(doc):
     """Subtítulos x.y.z con una tabulación (y dos en el cuarto nivel); pies de
     tabla y figura en la misma fuente y tamaño que el cuerpo."""
@@ -445,17 +430,18 @@ def actualizar_introduccion(doc):
     cambios = {
         "El documento desarrolla únicamente los entregables de la fase de ideación, análisis y diseño.":
             "El documento desarrolla los entregables de las fases de ideación, análisis y diseño, y el avance de "
-            "validación técnica y construcción del sistema. El Capítulo I presenta el planteamiento, los objetivos "
-            "y los alcances del proyecto. El Capítulo II integra el marco teórico y el estado del arte sobre "
-            "pronóstico de ventas minoristas, series de tiempo, aprendizaje automático, demanda intermitente, "
-            "métricas y explicabilidad. El Capítulo III define el enfoque metodológico, la población, la muestra y "
-            "las técnicas de recolección de datos.",
+            "validación técnica y construcción del sistema. El Capítulo I presenta el planteamiento del problema, la "
+            "justificación, los objetivos, los alcances y límites, y la hipótesis del proyecto. El Capítulo II integra "
+            "el estado del arte, las bases teóricas sobre pronóstico de ventas minoristas, series de tiempo, "
+            "aprendizaje automático, demanda intermitente, métricas y explicabilidad, y la definición de términos. "
+            "El Capítulo III define el tipo y diseño de la investigación, la población y la muestra, las técnicas e "
+            "instrumentos de recolección de datos y su validación, y la metodología de desarrollo del proyecto.",
         "Como complemento de ingeniería se incluye el levantamiento preliminar de requerimientos":
-            "Como complemento de ingeniería, la sección 3.5 incluye el levantamiento preliminar de requerimientos "
-            "mediante historias de usuario y casos de uso, el diseño arquitectónico lógico y de datos, y tres "
-            "wireframes de baja fidelidad. Sobre esa base, el Capítulo IV presenta los resultados de la validación técnica del "
-            "prototipo y la comprobación de hipótesis; el Capítulo V, el estudio de factibilidad; y el Capítulo VI, "
-            "el desarrollo de la solución: tipo de sistema, requerimientos, diseño, implementación y plan de pruebas.",
+            "El Capítulo IV presenta los resultados de la validación técnica del prototipo y la comprobación de la "
+            "hipótesis; el Capítulo V, el estudio de factibilidad; y el Capítulo VI, el desarrollo de la solución: "
+            "tipo de sistema, requerimientos —desde el levantamiento preliminar mediante historias de usuario y "
+            "casos de uso hasta los del producto mínimo viable—, diseño —incluidos la arquitectura preliminar y tres "
+            "wireframes de baja fidelidad—, implementación y plan de pruebas.",
     }
     hechos = 0
     for p in doc.paragraphs:
@@ -471,39 +457,45 @@ def actualizar_introduccion(doc):
 # ---------------------------------------------------------------------------
 
 def main():
-    RESPALDO.mkdir(exist_ok=True)
-    for ext in ("docx", "pdf"):
-        origen = DOCS / f"Trabajo de Graduacion.{ext}"
-        destino = RESPALDO / f"Trabajo de Graduacion - v1 agosto 2026.{ext}"
-        if origen.exists() and not destino.exists():
-            shutil.copy2(origen, destino)
     if not ORIGINAL.exists():
-        sys.exit(f"No existe el original {ORIGINAL}")
+        sys.exit(f"No existe el original {ORIGINAL}. Restáuralo con: git checkout -- \"{ORIGINAL.relative_to(RAIZ).as_posix()}\"")
 
     doc = Document(ORIGINAL)
     heading_ref = next(p for p in doc.paragraphs if p.text.strip() == "Referencias" and p.style.name == "Heading 1")
-    ins = Insertor(doc, heading_ref._p)
-
-    h1 = doc.styles["Heading 1"]
-    rompe = h1.paragraph_format.page_break_before is True
+    rompe = doc.styles["Heading 1"].paragraph_format.page_break_before is True
     ajustar_estilos(doc)
     n_runs_tablas = uniformar_tablas(doc)
-    n_entregable = integrar_entregable(doc)
-    estado = {"mermaid": 0}
+
+    estado = {"mermaid": 0, "anclas": {}}
+    bloques = reestructurar_docx.leer_bloques(TESIS / REVISION_CAPITULOS_1_A_3)
+
+    def insertar_bloque(lineas, ancla):
+        insertar_markdown(Insertor(doc, ancla), lineas, estado)
+
+    reestructurar_docx.completar_portada(doc)
+    reestructurar_docx.reestructurar_capitulos_1_a_3(doc, bloques, insertar_bloque)
+    entregable = reestructurar_docx.extraer_entregable(doc)
+
+    ins = Insertor(doc, heading_ref._p)
     for nombre in CAPITULOS:
         insertar_capitulo(ins, TESIS / nombre, estado, rompe)
+    reestructurar_docx.colocar_entregable(entregable, estado["anclas"])
 
     n_intro = actualizar_introduccion(doc)
     n_nuevas, n_total = fusionar_referencias(doc, heading_ref)
+    n_notas = pies_y_referencias.formato_apa(doc)
+    mapa = pies_y_referencias.renumerar(doc)
+    pies_y_referencias.corregir_estilo_indices(doc)
+    problemas = pies_y_referencias.verificar(doc)
 
     doc.save(SALIDA)
-    d2 = Document(SALIDA)
-    caps = [p for p in d2.paragraphs if p.style.name == "Caption"]
     print(f"escrito: {SALIDA.name}")
-    print(f"  tablas: {len(d2.tables)} | pies de tabla/figura: {len(caps)} | introduccion actualizada: {n_intro} parrafos")
-    print(f"  referencias: {n_nuevas} nuevas insertadas, {n_total} en total")
-    print(f"  Entregable integrado como seccion 3.5: {n_entregable} titulos | runs de tablas originales a 12 pt: {n_runs_tablas}")
-    print(f"  Heading 1 con salto de pagina propio: {rompe}")
+    print(f"  tablas: {len(mapa['Tabla'])} | figuras: {len(mapa['Figura'])} | notas APA: {n_notas} | introduccion: {n_intro} parrafos")
+    print(f"  referencias: {n_nuevas} nuevas insertadas, {n_total} en total | runs de tablas originales a 12 pt: {n_runs_tablas}")
+    for problema in problemas:
+        print(f"  REVISAR {problema}")
+    if problemas:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
